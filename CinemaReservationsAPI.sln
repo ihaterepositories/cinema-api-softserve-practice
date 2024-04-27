@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cinema.Data", "Cinema.Data\Cinema.Data.csproj", "{4A96216F-2644-470C-8B7E-63794684450A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cinema.DAL", "Cinema.DAL\Cinema.DAL.csproj", "{56F98500-407F-49AA-A8B2-26A4DB90AA86}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{4A96216F-2644-470C-8B7E-63794684450A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4A96216F-2644-470C-8B7E-63794684450A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4A96216F-2644-470C-8B7E-63794684450A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56F98500-407F-49AA-A8B2-26A4DB90AA86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56F98500-407F-49AA-A8B2-26A4DB90AA86}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56F98500-407F-49AA-A8B2-26A4DB90AA86}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56F98500-407F-49AA-A8B2-26A4DB90AA86}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
