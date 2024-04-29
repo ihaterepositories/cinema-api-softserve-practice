@@ -1,15 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.9.34728.123
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cinema.Data", "Cinema.Data\Cinema.Data.csproj", "{4A96216F-2644-470C-8B7E-63794684450A}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cinema.DAL", "Cinema.DAL\Cinema.DAL.csproj", "{56F98500-407F-49AA-A8B2-26A4DB90AA86}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cinema.BLL", "Cinema.BLL\Cinema.BLL.csproj", "{6F485688-9ECF-4C37-9F45-928B1623775A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cinema.API", "Cinema.API\Cinema.API.csproj", "{53144F5B-8762-4D79-872D-4994E41E689A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cinema.Data", "Cinema.Data\Cinema.Data.csproj", "{4A96216F-2644-470C-8B7E-63794684450A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,20 +12,5 @@ Global
 		{4A96216F-2644-470C-8B7E-63794684450A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4A96216F-2644-470C-8B7E-63794684450A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4A96216F-2644-470C-8B7E-63794684450A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{56F98500-407F-49AA-A8B2-26A4DB90AA86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{56F98500-407F-49AA-A8B2-26A4DB90AA86}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{56F98500-407F-49AA-A8B2-26A4DB90AA86}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{56F98500-407F-49AA-A8B2-26A4DB90AA86}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6F485688-9ECF-4C37-9F45-928B1623775A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6F485688-9ECF-4C37-9F45-928B1623775A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6F485688-9ECF-4C37-9F45-928B1623775A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6F485688-9ECF-4C37-9F45-928B1623775A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{53144F5B-8762-4D79-872D-4994E41E689A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{53144F5B-8762-4D79-872D-4994E41E689A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{53144F5B-8762-4D79-872D-4994E41E689A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{53144F5B-8762-4D79-872D-4994E41E689A}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
