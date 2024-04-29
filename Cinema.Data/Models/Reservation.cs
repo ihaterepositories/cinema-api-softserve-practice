@@ -9,4 +9,5 @@ public class Reservation
     public bool IsActive { get; set; }
 
     public ICollection<ReservedSeat> ReservedSeats { get; set; } = null!;
+    public User User { get; set; } = null!;
 }
