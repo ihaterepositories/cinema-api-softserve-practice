@@ -6,6 +6,7 @@ public class Screening
     public Guid MovieId { get; set; }
     public Guid RoomId { get; set; }
     public TimeOnly ScreeningStart { get; set; }
+    public double Price { get; set; }
     
     public ICollection<ReservedSeat> ReservedSeats { get; set; } = null!;
     public Movie Movie { get; set; } = null!;
