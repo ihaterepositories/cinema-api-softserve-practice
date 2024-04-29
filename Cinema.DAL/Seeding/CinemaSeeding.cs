@@ -76,6 +76,7 @@ namespace Cinema.DAL.Seeding
             Screenings = new Faker<Screening>()
                 .RuleFor(x => x.Id, f => f.Random.Guid())
                 .RuleFor(x => x.ScreeningStart, f => f.Date.RecentTimeOnly())
+                .RuleFor(x => x.Price, f => f.Random.Double())
                 .Generate(30);
 
             Seats = new Faker<Seat>()
