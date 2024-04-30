@@ -25,9 +25,4 @@
       <ProjectReference Include="..\Cinema.Data\Cinema.Data.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Compile Remove="Infrastructure\UnitOfWork.cs" />
-      <Compile Remove="Infrastructure\Interfaces\IUnitOfWork.cs" />
-    </ItemGroup>
-
 </Project>

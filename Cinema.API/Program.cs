@@ -1,4 +1,6 @@
 using Cinema.DAL;
+using Cinema.DAL.Infrastructure;
+using Cinema.DAL.Infrastructure.Interfaces;
 using Cinema.Data.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +11,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//Db Context
+// context configuration and database connection
 builder.Services.AddDbContext<CinemaContext>(options => options.UseSqlite(
     builder.Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("Cinema.API")))
     .AddIdentity<User, UserRole>(config =>
@@ -20,6 +22,13 @@ builder.Services.AddDbContext<CinemaContext>(options => options.UseSqlite(
         config.Password.RequireLowercase = true;
         config.Password.RequireUppercase = true;
     }).AddEntityFrameworkStores<CinemaContext>().AddDefaultTokenProviders();
+
+// repositories
+
+// infrastructure
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+// services
 
 var app = builder.Build();
 
