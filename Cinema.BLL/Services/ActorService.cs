@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
+using Cinema.BLL.Helpers;
 using Cinema.BLL.Services.Interfaces;
 using Cinema.DAL.Infrastructure.Interfaces;
+using Cinema.DAL.Repositories.Interfaces;
 using Cinema.Data.DTOs.ActorDTOs;
 using Cinema.Data.Models;
+using Cinema.Data.Responses.Interfaces;
 
 namespace Cinema.BLL.Services
 {
@@ -13,46 +16,114 @@ namespace Cinema.BLL.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ResponseCreator _responseCreator;
+        
+        private IActorRepository Repository => _unitOfWork.ActorRepository;
+        
         public ActorService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _responseCreator = new ResponseCreator();
         }
 
-        public async Task DeleteAsync(Guid id)
+        public async Task<IBaseResponse<List<GetActorDto>>> GetAsync()
         {
-            await _unitOfWork.ActorRepository.DeleteAsync(id);
-            await _unitOfWork.SaveChangesAsync();
+            try
+            {
+                var actorsFromDatabase = await Repository.GetAsync();
+                
+                if (actorsFromDatabase.Count == 0)
+                    return _responseCreator.CreateBaseNotFound<List<GetActorDto>>("No actors found.");
+                
+                var actorsDto = _mapper.Map<List<GetActorDto>>(actorsFromDatabase);
+
+                return _responseCreator.CreateBaseOk(actorsDto, actorsDto.Count);
+            }
+            catch (Exception e)
+            {
+                return _responseCreator.CreateBaseServerError<List<GetActorDto>>(e.Message);
+            }
         }
 
-        public async Task<IEnumerable<GetActorDto>> GetAsync()
+        public async Task<IBaseResponse<GetActorDto>> GetByIdAsync(Guid id)
         {
-            var actorsFromDatabase = await _unitOfWork.ActorRepository.GetAsync();
-            var actorsDTO = _mapper.Map<List<GetActorDto>>(actorsFromDatabase);
+            try
+            {
+                if (id == Guid.Empty)
+                    return _responseCreator.CreateBaseBadRequest<GetActorDto>("Id is empty.");
+                
+                if (await Repository.ExistsAsync(id) == false)
+                    return _responseCreator.CreateBaseNotFound<GetActorDto>($"Actor with id {id} not found.");
+                
+                var actorDto = _mapper.Map<GetActorDto>(await Repository.GetByIdAsync(id));
 
-            return actorsDTO;
+                return _responseCreator.CreateBaseOk(actorDto, 1);
+            }
+            catch (Exception e)
+            {
+                return _responseCreator.CreateBaseServerError<GetActorDto>(e.Message);
+            }
         }
 
-        public async Task<GetActorDto> GetByIdAsync(Guid id)
+        public async Task<IBaseResponse<string>> InsertAsync(AddActorDto entity)
         {
-            var actorFromDatabase = await _unitOfWork.ActorRepository.GetByIdAsync(id);
-            var actorDTO = _mapper.Map<GetActorDto>(actorFromDatabase);
-
-            return actorDTO;
+            try
+            {
+                if (entity == null)
+                    return _responseCreator.CreateBaseBadRequest<string>("Actor is empty.");
+                
+                await Repository.InsertAsync(_mapper.Map<Actor>(entity));
+                await _unitOfWork.SaveChangesAsync();
+                
+                return _responseCreator.CreateBaseOk($"Actor added.", 1);
+            }
+            catch (Exception e)
+            {
+                return _responseCreator.CreateBaseServerError<string>(e.Message);
+            }
         }
 
-        public async Task InsertAsync(AddActorDto entity)
+        public async Task<IBaseResponse<string>> UpdateAsync(UpdateActorDto entity)
         {
-            var insertedActor = _mapper.Map<Actor>(entity);
-            await _unitOfWork.ActorRepository.InsertAsync(insertedActor);
-            await _unitOfWork.SaveChangesAsync();
+            try
+            {
+                if (entity == null)
+                    return _responseCreator.CreateBaseBadRequest<string>("Actor is empty.");
+                
+                if (await Repository.ExistsAsync(entity.Id) == false)
+                    return _responseCreator.CreateBaseNotFound<string>($"Actor with id {entity.Id} not found.");
+                
+                await Repository.UpdateAsync(_mapper.Map<Actor>(entity));
+                await _unitOfWork.SaveChangesAsync();
+                
+                return _responseCreator.CreateBaseOk("Actor updated.", 1);
+            }
+            catch (Exception e)
+            {
+                return _responseCreator.CreateBaseServerError<string>(e.Message);
+            }
         }
-
-        public async Task UpdateAsync(UpdateActorDto entity)
+        
+        public async Task<IBaseResponse<string>> DeleteAsync(Guid id)
         {
-            var updatedActor = _mapper.Map<Actor>(entity);
-            await _unitOfWork.ActorRepository.UpdateAsync(updatedActor);
-            await _unitOfWork.SaveChangesAsync();
+            try
+            {
+                if (id == Guid.Empty)
+                    return _responseCreator.CreateBaseBadRequest<string>("Id is empty.");
+                
+                if (await Repository.ExistsAsync(id) == false)
+                    return _responseCreator.CreateBaseNotFound<string>($"Actor with id {id} not found.");
+                
+                await Repository.DeleteAsync(id);
+                await _unitOfWork.SaveChangesAsync();
+                
+                return _responseCreator.CreateBaseOk("Actor deleted.", 1);
+            }
+            catch (Exception e)
+            {
+                return _responseCreator.CreateBaseServerError<string>(e.Message);
+            }
         }
     }
 }

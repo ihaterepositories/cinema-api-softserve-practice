@@ -1,4 +1,3 @@
-using System.Reflection;
 using Cinema.BLL.Services;
 using Cinema.BLL.Services.Interfaces;
 using Cinema.DAL;
@@ -33,7 +32,10 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 // services
 builder.Services.AddScoped<IActorService, ActorService>();
-builder.Services.AddScoped<IMovieService, MovieService>();
+builder.Services.AddScoped<IGenreService, GenreService>();
+builder.Services.AddScoped<IReservedSeatService, ReservedSeatService>();
+builder.Services.AddScoped<IScreeningService, ScreeningService>();
+builder.Services.AddScoped<ISeatService, SeatService>();
 
 // repositories
 builder.Services.AddScoped<IActorRepository, ActorRepository>();
@@ -51,8 +53,6 @@ builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 
 // infrastructure
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-// services
 
 var app = builder.Build();
 
