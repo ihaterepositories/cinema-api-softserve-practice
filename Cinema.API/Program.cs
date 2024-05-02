@@ -1,6 +1,11 @@
+using System.Reflection;
+using Cinema.BLL.Services;
+using Cinema.BLL.Services.Interfaces;
 using Cinema.DAL;
 using Cinema.DAL.Infrastructure;
 using Cinema.DAL.Infrastructure.Interfaces;
+using Cinema.DAL.Repositories;
+using Cinema.DAL.Repositories.Interfaces;
 using Cinema.Data.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -23,7 +28,26 @@ builder.Services.AddDbContext<CinemaContext>(options => options.UseSqlite(
         config.Password.RequireUppercase = true;
     }).AddEntityFrameworkStores<CinemaContext>().AddDefaultTokenProviders();
 
+// AutoMapper 
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+// services
+builder.Services.AddScoped<IActorService, ActorService>();
+builder.Services.AddScoped<IMovieService, MovieService>();
+
 // repositories
+builder.Services.AddScoped<IActorRepository, ActorRepository>();
+builder.Services.AddScoped<IGenreRepository, GenreRepository>();
+builder.Services.AddScoped<IMovieActorRepository, MovieActorRepository>();
+builder.Services.AddScoped<IMovieGenreRepository, MovieGenreRepository>();
+builder.Services.AddScoped<IMovieRepository, MovieRepository>();
+builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
+builder.Services.AddScoped<IReservedSeatRepository, ReservedSeatRepository>();
+builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+builder.Services.AddScoped<IScreeningRepository, ScreeningRepository>();
+builder.Services.AddScoped<ISeatRepository, SeatRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 
 // infrastructure
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
