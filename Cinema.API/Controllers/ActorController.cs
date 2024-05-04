@@ -1,6 +1,5 @@
 using Cinema.BLL.Services.Interfaces;
 using Cinema.Data.DTOs.ActorDTOs;
-using Cinema.Data.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cinema.API.Controllers
