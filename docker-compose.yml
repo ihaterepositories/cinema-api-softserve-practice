@@ -1,0 +1,28 @@
+version: '3.4'
+
+services:
+  cinema.api:
+    container_name: cinema-api
+    image: ${DOCKER_REGISTRY-}cinemaapi
+    build:
+      context: .
+      dockerfile: Cinema.API/Dockerfile
+    ports:
+      - 8001:80
+    hostname: cinema-reservation-api
+    networks:
+      - cinema
+
+  cache:
+    image: redis:6.2-alpine
+    container_name: redis-cache
+    restart: always
+    hostname: redis-cache
+    ports:
+      - '6379:6379'
+    environment:
+      - REDIS_PASSWORD=mypass
+      - REDIS_PORT=6379
+      - REDIS_DATABASES=16
+    networks:
+      - cinema
