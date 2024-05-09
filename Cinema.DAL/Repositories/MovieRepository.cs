@@ -20,7 +20,8 @@ public class MovieRepository : GenericRepository<Movie>, IMovieRepository
         query = query.Include(c => c.MovieActors).ThenInclude(c => c.Actor);
         query = query.Include(c => c.MovieGenres).ThenInclude(c => c.Genre); ;
 
-        return await query.ToListAsync();
+        var result = await query.ToListAsync();
+        return result;
     }
 
     public override async Task<Movie> GetByIdAsync(Guid id)
@@ -30,7 +31,7 @@ public class MovieRepository : GenericRepository<Movie>, IMovieRepository
         // Include related entities
         query = query.Include(c => c.MovieActors).ThenInclude(c => c.Actor);
         query = query.Include(c => c.MovieGenres).ThenInclude(c => c.Genre);
-
-        return await query.FirstOrDefaultAsync(m => m.Id == id);
+        Movie? result = await query.FirstOrDefaultAsync(m => m.Id == id);
+        return result;
     }
 }

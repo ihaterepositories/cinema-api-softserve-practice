@@ -27,9 +27,4 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
         var entity = await GetByIdAsync(id);
         await Task.Run(() => Table.Remove(entity));
     }
-    
-    public async Task<bool> ExistsAsync(Guid id)
-    {
-        return await DatabaseContext.Set<TEntity>().FindAsync(id) != null;
-    }
 }

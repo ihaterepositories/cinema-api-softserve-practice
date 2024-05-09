@@ -17,25 +17,25 @@ public class ReservedSeatService : IReservedSeatService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly ResponseCreator _responseCreator;
-        
+
     private IReservedSeatRepository Repository => _unitOfWork.ReservedSeatRepository;
-        
+
     public ReservedSeatService(IUnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _responseCreator = new ResponseCreator();
     }
-    
+
     public async Task<IBaseResponse<List<GetReservedSeatDto>>> GetAsync()
     {
         try
         {
             var reservedSeatsFromDatabase = await Repository.GetAsync();
-                
+
             if (reservedSeatsFromDatabase.Count == 0)
                 return _responseCreator.CreateBaseNotFound<List<GetReservedSeatDto>>("No reserved seats found.");
-                
+
             var reservedSeatsDto = _mapper.Map<List<GetReservedSeatDto>>(reservedSeatsFromDatabase);
 
             return _responseCreator.CreateBaseOk(reservedSeatsDto, reservedSeatsDto.Count);
@@ -52,13 +52,13 @@ public class ReservedSeatService : IReservedSeatService
         {
             if (id == Guid.Empty)
                 return _responseCreator.CreateBaseBadRequest<GetReservedSeatDto>("Id is empty.");
-                
-            if (await Repository.ExistsAsync(id) == false)
-                return _responseCreator.CreateBaseNotFound<GetReservedSeatDto>($"Reserved seat with id {id} not found.");
-                
-            var genreDto = _mapper.Map<GetReservedSeatDto>(await Repository.GetByIdAsync(id));
 
-            return _responseCreator.CreateBaseOk(genreDto, 1);
+            var reservedSeatDto = _mapper.Map<GetReservedSeatDto>(await Repository.GetByIdAsync(id));
+
+            if (reservedSeatDto == null)
+                return _responseCreator.CreateBaseNotFound<GetReservedSeatDto>($"Reserved seat with id {id} not found.");
+
+            return _responseCreator.CreateBaseOk(reservedSeatDto, 1);
         }
         catch (Exception e)
         {
@@ -72,10 +72,10 @@ public class ReservedSeatService : IReservedSeatService
         {
             if (entity == null)
                 return _responseCreator.CreateBaseBadRequest<string>("Reserved seat is empty.");
-                
+
             await Repository.InsertAsync(_mapper.Map<ReservedSeat>(entity));
             await _unitOfWork.SaveChangesAsync();
-                
+
             return _responseCreator.CreateBaseOk($"Reserved seat added.", 1);
         }
         catch (Exception e)
@@ -90,13 +90,10 @@ public class ReservedSeatService : IReservedSeatService
         {
             if (id == Guid.Empty)
                 return _responseCreator.CreateBaseBadRequest<string>("Id is empty.");
-                
-            if (await Repository.ExistsAsync(id) == false)
-                return _responseCreator.CreateBaseNotFound<string>($"Reserved seat with id {id} not found.");
-                
+
             await Repository.DeleteAsync(id);
             await _unitOfWork.SaveChangesAsync();
-                
+
             return _responseCreator.CreateBaseOk("Reserved seat deleted.", 1);
         }
         catch (Exception e)

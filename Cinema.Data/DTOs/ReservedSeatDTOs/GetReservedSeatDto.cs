@@ -6,7 +6,8 @@ namespace Cinema.Data.DTOs.ReservedSeatDTOs
     public class GetReservedSeatDto
     {
         public Guid Id { get; set; }
-        public GetSeatDto Seat { get; set; } = null!;
-        public GetScreeningDto Screening { get; set; } = null!;
+        public Guid ReservationId { get; set; }
+        public Guid SeatId { get; set; }
+        public Guid ScreeningId { get; set; }
     }
 }

@@ -6,6 +6,8 @@ using Cinema.BLL.Helpers;
 using Cinema.BLL.Services.Interfaces;
 using Cinema.DAL.Infrastructure.Interfaces;
 using Cinema.DAL.Repositories.Interfaces;
+using Cinema.Data.DTOs.MovieDTOs;
+using Cinema.Data.DTOs.RoomsDTOs;
 using Cinema.Data.DTOs.ScreeningDTOs;
 using Cinema.Data.Models;
 using Cinema.Data.Responses.Interfaces;
@@ -17,25 +19,30 @@ public class ScreeningService : IScreeningService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly ResponseCreator _responseCreator;
-        
+
     private IScreeningRepository Repository => _unitOfWork.ScreeningRepository;
-        
+
     public ScreeningService(IUnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _responseCreator = new ResponseCreator();
     }
-    
+
     public async Task<IBaseResponse<List<GetScreeningDto>>> GetAsync()
     {
         try
         {
             var screeningsFromDatabase = await Repository.GetAsync();
-                
+            foreach (var screening in screeningsFromDatabase)
+            {
+                screening.Movie = await _unitOfWork.MovieRepository.GetByIdAsync(screening.MovieId);
+                screening.Room = await _unitOfWork.RoomRepository.GetByIdAsync(screening.RoomId);
+            }
+
             if (screeningsFromDatabase.Count == 0)
                 return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>("No screenings found.");
-                
+
             var screeningsDto = _mapper.Map<List<GetScreeningDto>>(screeningsFromDatabase);
 
             return _responseCreator.CreateBaseOk(screeningsDto, screeningsDto.Count);
@@ -52,11 +59,26 @@ public class ScreeningService : IScreeningService
         {
             if (id == Guid.Empty)
                 return _responseCreator.CreateBaseBadRequest<GetScreeningDto>("Id is empty.");
-                
-            if (await Repository.ExistsAsync(id) == false)
+
+            var screeningFromDatabase = await Repository.GetByIdAsync(id);
+
+            if (screeningFromDatabase == null)
                 return _responseCreator.CreateBaseNotFound<GetScreeningDto>($"Screening with id {id} not found.");
-                
-            var screeningDto = _mapper.Map<GetScreeningDto>(await Repository.GetByIdAsync(id));
+
+            // Retrieve associated movie and room entities
+            var movie = await _unitOfWork.MovieRepository.GetByIdAsync(screeningFromDatabase.MovieId);
+            var room = await _unitOfWork.RoomRepository.GetByIdAsync(screeningFromDatabase.RoomId);
+
+            // Map entities to DTOs using AutoMapper
+            var movieDto = _mapper.Map<GetMovieDto>(movie);
+            var roomDto = _mapper.Map<GetRoomDto>(room);
+
+            // Map the screening entity to GetScreeningDto
+            var screeningDto = _mapper.Map<GetScreeningDto>(screeningFromDatabase);
+
+            // Assign the mapped movie and room DTOs to the corresponding properties of the screening DTO
+            screeningDto.Movie = movieDto;
+            screeningDto.Room = roomDto;
 
             return _responseCreator.CreateBaseOk(screeningDto, 1);
         }
@@ -72,10 +94,10 @@ public class ScreeningService : IScreeningService
         {
             if (entity == null)
                 return _responseCreator.CreateBaseBadRequest<string>("Screening is empty.");
-                
+
             await Repository.InsertAsync(_mapper.Map<Screening>(entity));
             await _unitOfWork.SaveChangesAsync();
-                
+
             return _responseCreator.CreateBaseOk($"Screening added.", 1);
         }
         catch (Exception e)
@@ -90,13 +112,10 @@ public class ScreeningService : IScreeningService
         {
             if (entity == null)
                 return _responseCreator.CreateBaseBadRequest<string>("Screening is empty.");
-                
-            if (await Repository.ExistsAsync(entity.Id) == false)
-                return _responseCreator.CreateBaseNotFound<string>($"Screening with id {entity.Id} not found.");
-                
+
             await Repository.UpdateAsync(_mapper.Map<Screening>(entity));
             await _unitOfWork.SaveChangesAsync();
-                
+
             return _responseCreator.CreateBaseOk("Screening updated.", 1);
         }
         catch (Exception e)
@@ -111,13 +130,10 @@ public class ScreeningService : IScreeningService
         {
             if (id == Guid.Empty)
                 return _responseCreator.CreateBaseBadRequest<string>("Id is empty.");
-                
-            if (await Repository.ExistsAsync(id) == false)
-                return _responseCreator.CreateBaseNotFound<string>($"Screening with id {id} not found.");
-                
+
             await Repository.DeleteAsync(id);
             await _unitOfWork.SaveChangesAsync();
-                
+
             return _responseCreator.CreateBaseOk("Screening deleted.", 1);
         }
         catch (Exception e)
