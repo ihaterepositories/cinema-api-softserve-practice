@@ -8,52 +8,86 @@ namespace Cinema.API.Controllers
     [Route("api/[controller]")]
     public class GenreController : ControllerBase
     {
-        private readonly IGenreService _genreService;
+        private IGenreService Service { get; }
+
         public GenreController(IGenreService genreService)
         {
-            _genreService = genreService;
+            Service = genreService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetGenres()
         {
+            var response = await Service.GetAsync();
 
-            var response = await _genreService.GetAsync();
-
-            return Ok(response);
+            return response.StatusCode switch
+            {
+                Data.Responses.Enums.StatusCode.Ok => Ok(response),
+                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
+                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
+                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
+        
         [HttpGet("{id}")]
         public async Task<IActionResult> GetGenreById(Guid id)
         {
-            var response = await _genreService.GetByIdAsync(id);
-            if (response is null)
-                return NotFound();
-            return Ok(response);
+            var response = await Service.GetByIdAsync(id);
+            
+            return response.StatusCode switch
+            {
+                Data.Responses.Enums.StatusCode.Ok => Ok(response),
+                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
+                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
+                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
+        
         [HttpPost]
-        public async Task<IActionResult> PostMovie(AddGenreDto movie)
+        public async Task<IActionResult> PostGenre(AddGenreDto genre)
         {
-            var response = await _genreService.InsertAsync(movie);
-            if (response is null)
-                return NotFound();
-            return Ok(response);
+            var response = await Service.InsertAsync(genre);
+            
+            return response.StatusCode switch
+            {
+                Data.Responses.Enums.StatusCode.Ok => Ok(response),
+                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
+                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
+                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
+        
         [HttpPut]
-        public async Task<IActionResult> UpdateMovie(UpdateGenreDto movie)
+        public async Task<IActionResult> UpdateGenre(UpdateGenreDto genre)
         {
-            var response = await _genreService.UpdateAsync(movie);
-            if (response is null)
-                return NotFound();
-            return Ok(response);
+            var response = await Service.UpdateAsync(genre);
+            
+            return response.StatusCode switch
+            {
+                Data.Responses.Enums.StatusCode.Ok => Ok(response),
+                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
+                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
+                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteMovie(Guid id)
+        public async Task<IActionResult> DeleteGenre(Guid id)
         {
-            var response = await _genreService.DeleteAsync(id);
-            if (response is null)
-                return NotFound();
-            return Ok(response);
+            var response = await Service.DeleteAsync(id);
+            
+            return response.StatusCode switch
+            {
+                Data.Responses.Enums.StatusCode.Ok => Ok(response),
+                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
+                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
+                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
     }
 }

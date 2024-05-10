@@ -8,52 +8,86 @@ namespace Cinema.API.Controllers
     [Route("api/[controller]")]
     public class ActorController : ControllerBase
     {
-        private readonly IActorService _actorService;
+        private IActorService Service { get; }
+
         public ActorController(IActorService actorService)
         {
-            _actorService = actorService;
+            Service = actorService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetActors()
         {
+            var response = await Service.GetAsync();
 
-            var response = await _actorService.GetAsync();
-
-            return Ok(response);
+            return response.StatusCode switch
+            {
+                Data.Responses.Enums.StatusCode.Ok => Ok(response),
+                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
+                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
+                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
+        
         [HttpGet("{id}")]
         public async Task<IActionResult> GetActorById(Guid id)
         {
-            var response = await _actorService.GetByIdAsync(id);
-            if (response is null)
-                return NotFound();
-            return Ok(response);
+            var response = await Service.GetByIdAsync(id);
+
+            return response.StatusCode switch
+            {
+                Data.Responses.Enums.StatusCode.Ok => Ok(response),
+                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
+                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
+                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
+        
         [HttpPost]
         public async Task<IActionResult> PostActor(AddActorDto actor)
         {
-            var response = await _actorService.InsertAsync(actor);
-            if (response is null || response.Data?.Count() == 0)
-                return NotFound(response);
-            return Ok(response);
+            var response = await Service.InsertAsync(actor);
+
+            return response.StatusCode switch
+            {
+                Data.Responses.Enums.StatusCode.Ok => Ok(response),
+                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
+                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
+                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
+        
         [HttpPut]
         public async Task<IActionResult> UpdateActor(UpdateActorDto actor)
         {
-            var response = await _actorService.UpdateAsync(actor);
-            if (response is null || response.Data?.Count() == 0)
-                return NotFound(response);
-            return Ok(response);
+            var response = await Service.UpdateAsync(actor);
+            
+            return response.StatusCode switch
+            {
+                Data.Responses.Enums.StatusCode.Ok => Ok(response),
+                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
+                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
+                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteActor(Guid id)
         {
-            var response = await _actorService.DeleteAsync(id);
-            if (response is null || response.Data?.Count() == 0)
-                return NotFound(response);
-            return Ok(response);
+            var response = await Service.DeleteAsync(id);
+            
+            return response.StatusCode switch
+            {
+                Data.Responses.Enums.StatusCode.Ok => Ok(response),
+                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
+                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
+                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
     }
 }

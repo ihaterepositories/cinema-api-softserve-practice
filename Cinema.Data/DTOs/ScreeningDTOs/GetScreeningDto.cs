@@ -8,7 +8,7 @@ namespace Cinema.Data.DTOs.ScreeningDTOs
         public Guid Id { get; set; }
         public GetMovieDto Movie { get; set; } = null!;
         public GetRoomDto Room { get; set; } = null!;
-        public TimeOnly ScreeningStart { get; set; }
+        public DateTime StartDateTime { get; set; }
         public double Price { get; set; }
     }
 }
