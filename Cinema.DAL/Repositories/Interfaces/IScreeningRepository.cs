@@ -5,5 +5,5 @@ namespace Cinema.DAL.Repositories.Interfaces;
 
 public interface IScreeningRepository : IGenericRepository<Screening>
 {
-    
+
 }

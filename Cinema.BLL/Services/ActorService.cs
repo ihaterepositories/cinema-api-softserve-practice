@@ -17,9 +17,9 @@ namespace Cinema.BLL.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ResponseCreator _responseCreator;
-        
+
         private IActorRepository Repository => _unitOfWork.ActorRepository;
-        
+
         public ActorService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
@@ -32,10 +32,10 @@ namespace Cinema.BLL.Services
             try
             {
                 var actorsFromDatabase = await Repository.GetAsync();
-                
+
                 if (actorsFromDatabase.Count == 0)
                     return _responseCreator.CreateBaseNotFound<List<GetActorDto>>("No actors found.");
-                
+
                 var actorsDto = _mapper.Map<List<GetActorDto>>(actorsFromDatabase);
 
                 return _responseCreator.CreateBaseOk(actorsDto, actorsDto.Count);
@@ -52,11 +52,11 @@ namespace Cinema.BLL.Services
             {
                 if (id == Guid.Empty)
                     return _responseCreator.CreateBaseBadRequest<GetActorDto>("Id is empty.");
-                
-                if (await Repository.ExistsAsync(id) == false)
-                    return _responseCreator.CreateBaseNotFound<GetActorDto>($"Actor with id {id} not found.");
-                
+
                 var actorDto = _mapper.Map<GetActorDto>(await Repository.GetByIdAsync(id));
+
+                if (actorDto == null)
+                    return _responseCreator.CreateBaseNotFound<GetActorDto>($"Actor with id {id} not found.");
 
                 return _responseCreator.CreateBaseOk(actorDto, 1);
             }
@@ -72,10 +72,10 @@ namespace Cinema.BLL.Services
             {
                 if (entity == null)
                     return _responseCreator.CreateBaseBadRequest<string>("Actor is empty.");
-                
+
                 await Repository.InsertAsync(_mapper.Map<Actor>(entity));
                 await _unitOfWork.SaveChangesAsync();
-                
+
                 return _responseCreator.CreateBaseOk($"Actor added.", 1);
             }
             catch (Exception e)
@@ -90,13 +90,10 @@ namespace Cinema.BLL.Services
             {
                 if (entity == null)
                     return _responseCreator.CreateBaseBadRequest<string>("Actor is empty.");
-                
-                if (await Repository.ExistsAsync(entity.Id) == false)
-                    return _responseCreator.CreateBaseNotFound<string>($"Actor with id {entity.Id} not found.");
-                
+
                 await Repository.UpdateAsync(_mapper.Map<Actor>(entity));
                 await _unitOfWork.SaveChangesAsync();
-                
+
                 return _responseCreator.CreateBaseOk("Actor updated.", 1);
             }
             catch (Exception e)
@@ -104,20 +101,17 @@ namespace Cinema.BLL.Services
                 return _responseCreator.CreateBaseServerError<string>(e.Message);
             }
         }
-        
+
         public async Task<IBaseResponse<string>> DeleteAsync(Guid id)
         {
             try
             {
                 if (id == Guid.Empty)
                     return _responseCreator.CreateBaseBadRequest<string>("Id is empty.");
-                
-                if (await Repository.ExistsAsync(id) == false)
-                    return _responseCreator.CreateBaseNotFound<string>($"Actor with id {id} not found.");
-                
+
                 await Repository.DeleteAsync(id);
                 await _unitOfWork.SaveChangesAsync();
-                
+
                 return _responseCreator.CreateBaseOk("Actor deleted.", 1);
             }
             catch (Exception e)
