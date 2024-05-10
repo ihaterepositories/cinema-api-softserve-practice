@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Cinema.BLL.Helpers;
@@ -29,19 +30,80 @@ public class ScreeningService : IScreeningService
         _responseCreator = new ResponseCreator();
     }
 
-    public async Task<IBaseResponse<List<GetScreeningDto>>> GetAsync()
+    public async Task<IBaseResponse<List<GetScreeningDto>>> GetActualAsync()
     {
         try
         {
             var screeningsFromDatabase = await Repository.GetAsync();
+            
+            screeningsFromDatabase = screeningsFromDatabase
+                .Where(s => s.StartDateTime > DateTime.Now)
+                .OrderBy(s => s.StartDateTime)
+                .ToList();
+            
+            if (screeningsFromDatabase.Count == 0)
+                return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>($"No actual screenings found.");
+            
             foreach (var screening in screeningsFromDatabase)
             {
                 screening.Movie = await _unitOfWork.MovieRepository.GetByIdAsync(screening.MovieId);
                 screening.Room = await _unitOfWork.RoomRepository.GetByIdAsync(screening.RoomId);
             }
 
+            var screeningsDto = _mapper.Map<List<GetScreeningDto>>(screeningsFromDatabase);
+
+            return _responseCreator.CreateBaseOk(screeningsDto, screeningsDto.Count);
+        }
+        catch (Exception e)
+        {
+            return _responseCreator.CreateBaseServerError<List<GetScreeningDto>>(e.Message);
+        }
+    }
+    
+    public async Task<IBaseResponse<List<GetScreeningDto>>> GetActualByMovieNameAsync(string movieName)
+    {
+        try
+        {
+            var screeningsFromDatabase = await Repository.GetAsync();
+            
+            screeningsFromDatabase = screeningsFromDatabase
+                .FindAll(s => s.Movie.Name == movieName)
+                .Where(s => s.StartDateTime > DateTime.Now)
+                .OrderBy(s => s.StartDateTime)
+                .ToList();
+            
+            if (screeningsFromDatabase.Count == 0)
+                return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>($"No actual screenings with {movieName} movie name found.");
+            
+            foreach (var screening in screeningsFromDatabase)
+            {
+                screening.Movie = await _unitOfWork.MovieRepository.GetByIdAsync(screening.MovieId);
+                screening.Room = await _unitOfWork.RoomRepository.GetByIdAsync(screening.RoomId);
+            }
+
+            var screeningsDto = _mapper.Map<List<GetScreeningDto>>(screeningsFromDatabase);
+
+            return _responseCreator.CreateBaseOk(screeningsDto, screeningsDto.Count);
+        }
+        catch (Exception e)
+        {
+            return _responseCreator.CreateBaseServerError<List<GetScreeningDto>>(e.Message);
+        }
+    }
+
+    public async Task<IBaseResponse<List<GetScreeningDto>>> GetAsync()
+    {
+        try
+        {
+            var screeningsFromDatabase = await Repository.GetAsync();
             if (screeningsFromDatabase.Count == 0)
                 return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>("No screenings found.");
+            
+            foreach (var screening in screeningsFromDatabase)
+            {
+                screening.Movie = await _unitOfWork.MovieRepository.GetByIdAsync(screening.MovieId);
+                screening.Room = await _unitOfWork.RoomRepository.GetByIdAsync(screening.RoomId);
+            }
 
             var screeningsDto = _mapper.Map<List<GetScreeningDto>>(screeningsFromDatabase);
 

@@ -17,7 +17,7 @@ builder.Services.AddSwaggerGen();
 
 // context configuration and database connection
 builder.Services.AddDbContext<CinemaContext>(options => options.UseSqlite(
-    builder.Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("Cinema.API")))
+    builder.Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("Cinema.DAL")))
     .AddIdentity<User, UserRole>(config =>
     {
         config.Password.RequireNonAlphanumeric = false;

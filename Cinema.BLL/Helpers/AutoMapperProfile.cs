@@ -39,7 +39,7 @@ namespace Cinema.BLL.Helpers
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.Movie, opt => opt.MapFrom(src => src.Movie))
                 .ForMember(dest => dest.Room, opt => opt.MapFrom(src => src.Room))
-                .ForMember(dest => dest.ScreeningStart, opt => opt.MapFrom(src => src.ScreeningStart))
+                .ForMember(dest => dest.StartDateTime, opt => opt.MapFrom(src => src.StartDateTime))
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price));
             CreateMap<Screening, UpdateScreeningDto>().ReverseMap();
 
