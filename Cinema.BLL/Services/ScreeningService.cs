@@ -66,20 +66,20 @@ public class ScreeningService : IScreeningService
         {
             var screeningsFromDatabase = await Repository.GetAsync();
             
-            screeningsFromDatabase = screeningsFromDatabase
-                .FindAll(s => s.Movie.Name == movieName)
-                .Where(s => s.StartDateTime > DateTime.Now)
-                .OrderBy(s => s.StartDateTime)
-                .ToList();
-            
-            if (screeningsFromDatabase.Count == 0)
-                return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>($"No actual screenings with {movieName} movie name found.");
-            
             foreach (var screening in screeningsFromDatabase)
             {
                 screening.Movie = await _unitOfWork.MovieRepository.GetByIdAsync(screening.MovieId);
                 screening.Room = await _unitOfWork.RoomRepository.GetByIdAsync(screening.RoomId);
             }
+            
+            if (screeningsFromDatabase.Count == 0)
+                return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>($"No actual screenings with {movieName} movie name found.");
+            
+            screeningsFromDatabase = screeningsFromDatabase
+                .FindAll(s => s.Movie.Name == movieName)
+                .Where(s => s.StartDateTime > DateTime.Now)
+                .OrderBy(s => s.StartDateTime)
+                .ToList();
 
             var screeningsDto = _mapper.Map<List<GetScreeningDto>>(screeningsFromDatabase);
 
