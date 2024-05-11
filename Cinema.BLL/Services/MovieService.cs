@@ -8,6 +8,7 @@ using Cinema.DAL.Infrastructure.Interfaces;
 using Cinema.DAL.Repositories.Interfaces;
 using Cinema.Data.DTOs.MovieDTOs;
 using Cinema.Data.Models;
+using Cinema.Data.Responses;
 using Cinema.Data.Responses.Interfaces;
 
 namespace Cinema.BLL.Services
@@ -25,6 +26,25 @@ namespace Cinema.BLL.Services
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _responseCreator = new ResponseCreator();
+        }
+        
+        public async Task<IBaseResponse<List<GetMovieDto>>> GetTakeSkip(int take, int skip)
+        {
+            try
+            {
+                var moviesFromDatabase = await Repository.GetTakeSkipAsync(take, skip);
+
+                if (moviesFromDatabase.Count == 0)
+                    return _responseCreator.CreateBaseNotFound<List<GetMovieDto>>("No movies found.");
+
+                var moviesDto = _mapper.Map<List<GetMovieDto>>(moviesFromDatabase);
+
+                return _responseCreator.CreateBaseOk(moviesDto, moviesDto.Count);
+            }
+            catch (Exception e)
+            {
+                return _responseCreator.CreateBaseServerError<List<GetMovieDto>>(e.Message);
+            }
         }
 
         public async Task<IBaseResponse<List<GetMovieDto>>> GetAsync()

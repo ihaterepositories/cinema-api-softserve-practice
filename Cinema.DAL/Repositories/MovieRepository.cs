@@ -7,9 +7,19 @@ namespace Cinema.DAL.Repositories;
 
 public class MovieRepository : GenericRepository<Movie>, IMovieRepository
 {
+    private readonly CinemaContext _context;
     public MovieRepository(CinemaContext context) : base(context)
     {
-
+        _context = context;
+    }
+    
+    public async Task<List<Movie>> GetTakeSkipAsync(int take, int skip)
+    {
+        return await _context.Movies
+            .OrderBy(m => m.Id) // Order by some property if needed
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync();
     }
 
     public override async Task<List<Movie>> GetAsync()

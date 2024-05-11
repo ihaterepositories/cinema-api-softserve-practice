@@ -8,6 +8,7 @@ namespace Cinema.BLL.Services.Interfaces
 {
     public interface IMovieService
     {
+        Task<IBaseResponse<List<GetMovieDto>>> GetTakeSkip(int take, int skip);
         Task<IBaseResponse<List<GetMovieDto>>> GetAsync();
         Task<IBaseResponse<GetMovieDto>> GetByIdAsync(Guid id);
         Task<IBaseResponse<string>> InsertAsync(AddMovieDto entity);

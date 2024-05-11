@@ -1,5 +1,7 @@
+using System.Net;
 using Cinema.BLL.Services.Interfaces;
 using Cinema.Data.DTOs.ReservationDTOs;
+using Cinema.Data.Responses;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cinema.API.Controllers
@@ -15,7 +17,10 @@ namespace Cinema.API.Controllers
             Service = reservationService;
         }
 
-        [HttpGet]
+        [HttpGet("GetAllReservations")]
+        [ProducesResponseType(typeof(BaseResponse<List<GetReservationDto>>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse<List<GetReservationDto>>), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(BaseResponse<List<GetReservationDto>>), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> GetReservations()
         {
             var response = await Service.GetAsync();
@@ -30,7 +35,12 @@ namespace Cinema.API.Controllers
             };
         }
         
-        [HttpGet("{id}")]
+        [HttpGet]
+        [Route("[action]/{id}", Name = "GetReservationById")]
+        [ProducesResponseType(typeof(BaseResponse<GetReservationDto>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse<GetReservationDto>), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse<GetReservationDto>), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(BaseResponse<GetReservationDto>), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> GetReservationById(Guid id)
         {
             var response = await Service.GetByIdAsync(id);
@@ -45,7 +55,10 @@ namespace Cinema.API.Controllers
             };
         }
         
-        [HttpPost]
+        [HttpPost("PostReservation")]
+        [ProducesResponseType(typeof(BaseResponse<AddReservationDto>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse<AddReservationDto>), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse<AddReservationDto>), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> PostReservation(AddReservationDto reservation)
         {
             var response = await Service.InsertAsync(reservation);
@@ -60,7 +73,10 @@ namespace Cinema.API.Controllers
             };
         }
         
-        [HttpPut]
+        [HttpPut("UpdateReservation")]
+        [ProducesResponseType(typeof(BaseResponse<UpdateReservationDto>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse<UpdateReservationDto>), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse<UpdateReservationDto>), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> UpdateReservation(UpdateReservationDto reservation)
         {
             var response = await Service.UpdateAsync(reservation);
@@ -75,7 +91,11 @@ namespace Cinema.API.Controllers
             };
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete]
+        [Route("[action]/{id}", Name = "DeleteReservation")]
+        [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> DeleteReservation(Guid id)
         {
             var response = await Service.DeleteAsync(id);

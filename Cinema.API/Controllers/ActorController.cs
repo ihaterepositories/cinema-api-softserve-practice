@@ -1,6 +1,12 @@
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Threading.Tasks;
 using Cinema.BLL.Services.Interfaces;
 using Cinema.Data.DTOs.ActorDTOs;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Cinema.API.Controllers
 {
@@ -8,86 +14,122 @@ namespace Cinema.API.Controllers
     [Route("api/[controller]")]
     public class ActorController : ControllerBase
     {
-        private IActorService Service { get; }
+        private readonly IActorService _actorService;
+        private readonly ILogger<ActorController> _logger;
 
-        public ActorController(IActorService actorService)
+        public ActorController(
+            IActorService actorService,
+            ILogger<ActorController> logger
+        )
         {
-            Service = actorService;
+            _actorService = actorService;
+            _logger = logger;
+        }
+
+        [HttpGet("GetAllActors")]
+        [ProducesResponseType(typeof(List<GetActorDto>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.InternalServerError)]
+        public async Task<IActionResult> GetActors()
+        {
+            try
+            {
+                var result = await _actorService.GetAsync();
+                if (result == null)
+                {
+                    _logger.LogWarning("No actors found");
+                    return NotFound();
+                }
+
+                _logger.LogInformation("Actors retrieved successfully");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while retrieving actors");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving actors");
+            }
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetActors()
-        {
-            var response = await Service.GetAsync();
-
-            return response.StatusCode switch
-            {
-                Data.Responses.Enums.StatusCode.Ok => Ok(response),
-                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
-                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
-                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
-                _ => throw new ArgumentOutOfRangeException()
-            };
-        }
-        
-        [HttpGet("{id}")]
+        [Route("[action]/{id}", Name = "GetActorById")]
+        [ProducesResponseType(typeof(GetActorDto), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> GetActorById(Guid id)
         {
-            var response = await Service.GetByIdAsync(id);
-
-            return response.StatusCode switch
+            try
             {
-                Data.Responses.Enums.StatusCode.Ok => Ok(response),
-                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
-                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
-                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
-                _ => throw new ArgumentOutOfRangeException()
-            };
+                var result = await _actorService.GetByIdAsync(id);
+                if (result == null)
+                {
+                    _logger.LogWarning($"Actor with id {id} not found");
+                    return NotFound();
+                }
+
+                _logger.LogInformation($"Actor with id {id} retrieved successfully");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while retrieving actor with id {id}");
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred while retrieving actor with id {id}");
+            }
         }
-        
-        [HttpPost]
+
+        [HttpPost("PostActor")]
+        [ProducesResponseType(typeof(AddActorDto), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> PostActor(AddActorDto actor)
         {
-            var response = await Service.InsertAsync(actor);
-
-            return response.StatusCode switch
+            try
             {
-                Data.Responses.Enums.StatusCode.Ok => Ok(response),
-                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
-                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
-                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
-                _ => throw new ArgumentOutOfRangeException()
-            };
+                await _actorService.InsertAsync(actor);
+
+                _logger.LogInformation($"Actor {actor.FullName} added successfully");
+                return CreatedAtAction(nameof(GetActorById),  actor);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while adding actor {actor.FullName}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while adding actor");
+            }
         }
-        
-        [HttpPut]
+
+        [HttpPut("UpdateActor")]
+        [ProducesResponseType(typeof(UpdateActorDto), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> UpdateActor(UpdateActorDto actor)
         {
-            var response = await Service.UpdateAsync(actor);
-            
-            return response.StatusCode switch
+            try
             {
-                Data.Responses.Enums.StatusCode.Ok => Ok(response),
-                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
-                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
-                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
-                _ => throw new ArgumentOutOfRangeException()
-            };
+                await _actorService.UpdateAsync(actor);
+                return Ok(actor);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while updating the actor.");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while updating the actor.");
+            }
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete]
+        [Route ("[action]/{id}", Name="DeleteActor")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> DeleteActor(Guid id)
         {
-            var response = await Service.DeleteAsync(id);
-            
-            return response.StatusCode switch
+            try
             {
-                Data.Responses.Enums.StatusCode.Ok => Ok(response),
-                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
-                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
-                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
-                _ => throw new ArgumentOutOfRangeException()
-            };
+                await _actorService.DeleteAsync(id);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while deleting the actor.");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while deleting the actor.");
+            }
         }
     }
 }
