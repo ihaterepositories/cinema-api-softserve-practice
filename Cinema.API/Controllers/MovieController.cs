@@ -44,7 +44,22 @@ namespace Cinema.API.Controllers
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
-        
+
+        [HttpGet("/newMovies")]
+        public async Task<IActionResult> GetNewMovies()
+        {
+            var response = await Service.GetNewMoviesAsync();
+
+            return response.StatusCode switch
+            {
+                Data.Responses.Enums.StatusCode.Ok => Ok(response),
+                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
+                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
+                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
+
         [HttpPost]
         public async Task<IActionResult> PostMovie(AddMovieDto movie)
         {
