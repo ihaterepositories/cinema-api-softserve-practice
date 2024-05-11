@@ -53,13 +53,12 @@ namespace Cinema.DAL.Seeding
 
             Reservations = new Faker<Reservation>()
                 .RuleFor(x => x.Id, f => f.Random.Guid())
-                .RuleFor(x => x.Reserved, f => f.Random.Bool())
                 .RuleFor(x => x.IsPaid, f => f.Random.Bool())
-                .RuleFor(x => x.IsActive, f => f.Random.Bool())
                 .Generate(30);
 
             ReservedSeats = new Faker<ReservedSeat>()
                 .RuleFor(x => x.Id, f => f.Random.Guid())
+                .RuleFor(x => x.IsReserved, f => f.Random.Bool())
                 .Generate(30);
 
             Rooms = new Faker<Room>()
