@@ -55,6 +55,14 @@ builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 // infrastructure
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+//Redis-Caching
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = "redis-cache:6379";
+    options.InstanceName = "Cinema";
+
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

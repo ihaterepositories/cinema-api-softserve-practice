@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ApplicationManifest ApplicationTypeName="CinemaReservationsAPIApplicationType"
+                     ApplicationTypeVersion="1.0.0"
+                     xmlns="http://schemas.microsoft.com/2011/01/fabric"
+                     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Parameters>
+  </Parameters>
+  <!-- Импортируйте ServiceManifest из ServicePackage. Значения ServiceManifestName и ServiceManifestVersion 
+       должны совпадать с атрибутами Name и Version элемента ServiceManifest, определенного в 
+       файле ServiceManifest.xml. -->
+  <DefaultServices>
+    <!-- Приведенный ниже раздел создает экземпляры типов служб при создании экземпляра этого 
+         типа приложения. Кроме того, вы можете создать один экземпляр типа службы или несколько с помощью 
+         модуля ServiceFabric PowerShell.
+
+         Указанное ниже значение атрибута ServiceTypeName должно совпадать с именем, определенным в импортированном файле ServiceManifest.xml. -->
+  </DefaultServices>
+</ApplicationManifest>
