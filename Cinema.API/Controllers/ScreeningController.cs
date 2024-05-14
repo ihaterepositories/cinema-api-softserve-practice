@@ -53,6 +53,25 @@ namespace Cinema.API.Controllers
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
+
+        [HttpGet]
+        [Route("[action]/{id}", Name = "GetScreeningsByRoomId")]
+        [ProducesResponseType(typeof(BaseResponse<List<GetScreeningDto>>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse<List<GetScreeningDto>>), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(BaseResponse<List<GetScreeningDto>>), (int)HttpStatusCode.InternalServerError)]
+        public async Task<IActionResult> GetScreeningsByRoomId(Guid id)
+        {
+            var response = await Service.GetScreeningsByRoomId(id);
+            
+            return response.StatusCode switch
+            {
+                Data.Responses.Enums.StatusCode.Ok => Ok(response),
+                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
+                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
+                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
         
         [HttpGet("GetAllScreenings")]
         [ProducesResponseType(typeof(BaseResponse<List<GetScreeningDto>>), (int)HttpStatusCode.OK)]
