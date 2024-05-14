@@ -27,6 +27,17 @@ public class ResponseCreator
         };
     }
     
+    public BaseResponse<T> CreateBaseOk<T>(T data, int resultsCount, string description)
+    {
+        return new BaseResponse<T>()
+        {
+            ResultsCount = resultsCount,
+            Data = data,
+            Description = description,
+            StatusCode = StatusCode.Ok
+        };
+    }
+    
     public BaseResponse<T> CreateBaseBadRequest<T>(string description)
     {
         return new BaseResponse<T>()

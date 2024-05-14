@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using Cinema.BLL.Helpers;
@@ -13,6 +14,8 @@ using Cinema.Data.DTOs.RoomsDTOs;
 using Cinema.Data.DTOs.ScreeningDTOs;
 using Cinema.Data.Models;
 using Cinema.Data.Responses.Interfaces;
+using Microsoft.Extensions.Caching.Distributed;
+using Newtonsoft.Json;
 
 namespace Cinema.BLL.Services;
 
@@ -21,39 +24,75 @@ public class ScreeningService : IScreeningService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly ResponseCreator _responseCreator;
+    
+    private readonly IDistributedCache _cache;
+    private readonly int _cacheExpirationTime = 5;
+    private readonly string _cacheKey = "screenings";
 
     private IScreeningRepository Repository => _unitOfWork.ScreeningRepository;
 
-    public ScreeningService(IUnitOfWork unitOfWork, IMapper mapper)
+    public ScreeningService(IUnitOfWork unitOfWork, IMapper mapper, IDistributedCache cache)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _responseCreator = new ResponseCreator();
+        _cache = cache;
     }
 
+    // cache support enabled
     public async Task<IBaseResponse<List<GetScreeningDto>>> GetActualAsync()
     {
         try
         {
-            var screeningsFromDatabase = await Repository.GetAsync();
+            string responseDescription;
+            string serializedScreenings;
+            List<Screening> screenings;
             
-            screeningsFromDatabase = screeningsFromDatabase
+            var cachedScreenings = await _cache.GetAsync(_cacheKey);
+
+            if (cachedScreenings != null)
+            {
+                serializedScreenings = Encoding.UTF8.GetString(cachedScreenings);
+                screenings = JsonConvert.DeserializeObject<List<Screening>>(serializedScreenings);
+                responseDescription = "Screenings extracted from cache.";
+            }
+            else
+            {
+                screenings = await Repository.GetAsync();
+                
+                serializedScreenings = JsonConvert.SerializeObject(screenings, new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                });
+                    
+                cachedScreenings = Encoding.UTF8.GetBytes(serializedScreenings);
+
+                await _cache.SetAsync(_cacheKey, cachedScreenings, new DistributedCacheEntryOptions()
+                    .SetAbsoluteExpiration(DateTime.Now.AddMinutes(_cacheExpirationTime)));
+
+                responseDescription = $"Screenings extracted from database. Cached for {_cacheExpirationTime} minutes.";
+            }
+
+            if (screenings.Count == 0)
+                return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>("No screenings found.");
+            
+            screenings = screenings
                 .Where(s => s.StartDateTime > DateTime.Now)
                 .OrderBy(s => s.StartDateTime)
                 .ToList();
             
-            if (screeningsFromDatabase.Count == 0)
+            if (screenings.Count == 0)
                 return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>($"No actual screenings found.");
             
-            foreach (var screening in screeningsFromDatabase)
+            foreach (var screening in screenings)
             {
                 screening.Movie = await _unitOfWork.MovieRepository.GetByIdAsync(screening.MovieId);
                 screening.Room = await _unitOfWork.RoomRepository.GetByIdAsync(screening.RoomId);
             }
 
-            var screeningsDto = _mapper.Map<List<GetScreeningDto>>(screeningsFromDatabase);
+            var screeningsDto = _mapper.Map<List<GetScreeningDto>>(screenings);
 
-            return _responseCreator.CreateBaseOk(screeningsDto, screeningsDto.Count);
+            return _responseCreator.CreateBaseOk(screeningsDto, screeningsDto.Count, responseDescription);
         }
         catch (Exception e)
         {
@@ -61,30 +100,61 @@ public class ScreeningService : IScreeningService
         }
     }
     
+    // cache support enabled
     public async Task<IBaseResponse<List<GetScreeningDto>>> GetActualByMovieNameAsync(string movieName)
     {
         try
         {
-            var screeningsFromDatabase = await Repository.GetAsync();
+            string responseDescription;
+            string serializedScreenings;
+            List<Screening> screenings;
             
-            foreach (var screening in screeningsFromDatabase)
+            var cachedScreenings = await _cache.GetAsync(_cacheKey);
+
+            if (cachedScreenings != null)
+            {
+                serializedScreenings = Encoding.UTF8.GetString(cachedScreenings);
+                screenings = JsonConvert.DeserializeObject<List<Screening>>(serializedScreenings);
+                responseDescription = "Screenings extracted from cache.";
+            }
+            else
+            {
+                screenings = await Repository.GetAsync();
+                
+                serializedScreenings = JsonConvert.SerializeObject(screenings, new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                });
+                    
+                cachedScreenings = Encoding.UTF8.GetBytes(serializedScreenings);
+
+                await _cache.SetAsync(_cacheKey, cachedScreenings, new DistributedCacheEntryOptions()
+                    .SetAbsoluteExpiration(DateTime.Now.AddMinutes(_cacheExpirationTime)));
+
+                responseDescription = $"Screenings extracted from database. Cached for {_cacheExpirationTime} minutes.";
+            }
+
+            if (screenings.Count == 0)
+                return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>("No screenings found.");
+            
+            foreach (var screening in screenings)
             {
                 screening.Movie = await _unitOfWork.MovieRepository.GetByIdAsync(screening.MovieId);
                 screening.Room = await _unitOfWork.RoomRepository.GetByIdAsync(screening.RoomId);
             }
             
-            if (screeningsFromDatabase.Count == 0)
-                return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>($"No actual screenings with {movieName} movie name found.");
-            
-            screeningsFromDatabase = screeningsFromDatabase
+            screenings = screenings
                 .FindAll(s => s.Movie.Name == movieName)
                 .Where(s => s.StartDateTime > DateTime.Now)
                 .OrderBy(s => s.StartDateTime)
                 .ToList();
+            
+            if (screenings.Count == 0)
+                return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>($"No actual screenings with {movieName} movie name found.");
 
-            var screeningsDto = _mapper.Map<List<GetScreeningDto>>(screeningsFromDatabase);
+            var screeningsDto = _mapper.Map<List<GetScreeningDto>>(screenings);
 
-            return _responseCreator.CreateBaseOk(screeningsDto, screeningsDto.Count);
+            return _responseCreator.CreateBaseOk(screeningsDto, screeningsDto.Count, responseDescription);
         }
         catch (Exception e)
         {
@@ -92,29 +162,60 @@ public class ScreeningService : IScreeningService
         }
     }
 
+    // cache support enabled
     public async Task<IBaseResponse<List<GetScreeningDto>>> GetScreeningsByRoomId(Guid id)
     {
         try
         {
-            var screeningsFromDatabase = await Repository.GetAsync();
+            string responseDescription;
+            string serializedScreenings;
+            List<Screening> screenings;
             
-            foreach (var screening in screeningsFromDatabase)
+            var cachedScreenings = await _cache.GetAsync(_cacheKey);
+
+            if (cachedScreenings != null)
+            {
+                serializedScreenings = Encoding.UTF8.GetString(cachedScreenings);
+                screenings = JsonConvert.DeserializeObject<List<Screening>>(serializedScreenings);
+                responseDescription = "Screenings extracted from cache.";
+            }
+            else
+            {
+                screenings = await Repository.GetAsync();
+                
+                serializedScreenings = JsonConvert.SerializeObject(screenings, new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                });
+                    
+                cachedScreenings = Encoding.UTF8.GetBytes(serializedScreenings);
+
+                await _cache.SetAsync(_cacheKey, cachedScreenings, new DistributedCacheEntryOptions()
+                    .SetAbsoluteExpiration(DateTime.Now.AddMinutes(_cacheExpirationTime)));
+
+                responseDescription = $"Screenings extracted from database. Cached for {_cacheExpirationTime} minutes.";
+            }
+
+            if (screenings.Count == 0)
+                return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>("No screenings found.");
+            
+            foreach (var screening in screenings)
             {
                 screening.Movie = await _unitOfWork.MovieRepository.GetByIdAsync(screening.MovieId);
                 screening.Room = await _unitOfWork.RoomRepository.GetByIdAsync(screening.RoomId);
             }
             
-            if (screeningsFromDatabase.Count == 0)
-                return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>($"No screenings in room with id {id} found.");
-            
-            screeningsFromDatabase = screeningsFromDatabase
+            screenings = screenings
                 .FindAll(s => s.RoomId == id)
                 .OrderBy(s => s.StartDateTime)
                 .ToList();
+            
+            if (screenings.Count == 0)
+                return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>($"No screenings in room with id {id} found.");
 
-            var screeningsDto = _mapper.Map<List<GetScreeningDto>>(screeningsFromDatabase);
+            var screeningsDto = _mapper.Map<List<GetScreeningDto>>(screenings);
 
-            return _responseCreator.CreateBaseOk(screeningsDto, screeningsDto.Count);
+            return _responseCreator.CreateBaseOk(screeningsDto, screeningsDto.Count, responseDescription);
         }
         catch (Exception e)
         {
@@ -122,23 +223,52 @@ public class ScreeningService : IScreeningService
         }
     }
    
+    // cache support enabled
     public async Task<IBaseResponse<List<GetScreeningDto>>> GetAsync()
     {
         try
         {
-            var screeningsFromDatabase = await Repository.GetAsync();
-            if (screeningsFromDatabase.Count == 0)
+            string responseDescription;
+            string serializedScreenings;
+            List<Screening> screenings;
+            
+            var cachedScreenings = await _cache.GetAsync(_cacheKey);
+
+            if (cachedScreenings != null)
+            {
+                serializedScreenings = Encoding.UTF8.GetString(cachedScreenings);
+                screenings = JsonConvert.DeserializeObject<List<Screening>>(serializedScreenings);
+                responseDescription = "Screenings extracted from cache.";
+            }
+            else
+            {
+                screenings = await Repository.GetAsync();
+                
+                serializedScreenings = JsonConvert.SerializeObject(screenings, new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                });
+                    
+                cachedScreenings = Encoding.UTF8.GetBytes(serializedScreenings);
+
+                await _cache.SetAsync(_cacheKey, cachedScreenings, new DistributedCacheEntryOptions()
+                    .SetAbsoluteExpiration(DateTime.Now.AddMinutes(_cacheExpirationTime)));
+
+                responseDescription = $"Screenings extracted from database. Cached for {_cacheExpirationTime} minutes.";
+            }
+
+            if (screenings.Count == 0)
                 return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>("No screenings found.");
             
-            foreach (var screening in screeningsFromDatabase)
+            foreach (var screening in screenings)
             {
                 screening.Movie = await _unitOfWork.MovieRepository.GetByIdAsync(screening.MovieId);
                 screening.Room = await _unitOfWork.RoomRepository.GetByIdAsync(screening.RoomId);
             }
 
-            var screeningsDto = _mapper.Map<List<GetScreeningDto>>(screeningsFromDatabase);
+            var screeningsDto = _mapper.Map<List<GetScreeningDto>>(screenings);
 
-            return _responseCreator.CreateBaseOk(screeningsDto, screeningsDto.Count);
+            return _responseCreator.CreateBaseOk(screeningsDto, screeningsDto.Count, responseDescription);
         }
         catch (Exception e)
         {
@@ -181,30 +311,61 @@ public class ScreeningService : IScreeningService
         }
     }
     
+    // cache support enabled
     public async Task<IBaseResponse<List<GetScreeningDto>>> GetActualByDateAsync(DateOnly date)
     {
         try
         {
-            var screeningsFromDatabase = await Repository.GetAsync();
+            string responseDescription;
+            string serializedScreenings;
+            List<Screening> screenings;
+            
+            var cachedScreenings = await _cache.GetAsync(_cacheKey);
 
-            foreach (var screening in screeningsFromDatabase)
+            if (cachedScreenings != null)
+            {
+                serializedScreenings = Encoding.UTF8.GetString(cachedScreenings);
+                screenings = JsonConvert.DeserializeObject<List<Screening>>(serializedScreenings);
+                responseDescription = "Screenings extracted from cache.";
+            }
+            else
+            {
+                screenings = await Repository.GetAsync();
+                
+                serializedScreenings = JsonConvert.SerializeObject(screenings, new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                });
+                    
+                cachedScreenings = Encoding.UTF8.GetBytes(serializedScreenings);
+
+                await _cache.SetAsync(_cacheKey, cachedScreenings, new DistributedCacheEntryOptions()
+                    .SetAbsoluteExpiration(DateTime.Now.AddMinutes(_cacheExpirationTime)));
+
+                responseDescription = $"Screenings extracted from database. Cached for {_cacheExpirationTime} minutes.";
+            }
+            
+            if (screenings.Count == 0)
+                return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>("No screenings found.");
+
+            foreach (var screening in screenings)
             {
                 screening.Movie = await _unitOfWork.MovieRepository.GetByIdAsync(screening.MovieId);
                 screening.Room = await _unitOfWork.RoomRepository.GetByIdAsync(screening.RoomId);
             }
 
-            if (screeningsFromDatabase.Count == 0)
-                return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>($"No actual screenings at {date} found.");
-
-            screeningsFromDatabase = screeningsFromDatabase
+            screenings = screenings
                 .Where(s => date.CompareTo(DateOnly.FromDateTime(s.StartDateTime))==0)
                 .Where(s => s.StartDateTime > DateTime.Now)
                 .OrderBy(s => s.StartDateTime)
                 .ToList();
+            
+            if (screenings.Count == 0)
+                return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>($"No actual screenings at {date} found.");
 
-            var screeningsDto = _mapper.Map<List<GetScreeningDto>>(screeningsFromDatabase);
+            var screeningsDto = _mapper.Map<List<GetScreeningDto>>(screenings);
 
-            return _responseCreator.CreateBaseOk(screeningsDto, screeningsDto.Count);
+            return _responseCreator.CreateBaseOk(screeningsDto, screeningsDto.Count, responseDescription);
         }
         catch (Exception e)
         {
@@ -212,31 +373,62 @@ public class ScreeningService : IScreeningService
         }
     }
     
+    // cache support enabled
     public async Task<IBaseResponse<List<GetScreeningDto>>> GetActualByDurationAsync(string minDuration, string maxDuration)
     {
         try
         {
-            var screeningsFromDatabase = await Repository.GetAsync();
+            string responseDescription;
+            string serializedScreenings;
+            List<Screening> screenings;
+            
+            var cachedScreenings = await _cache.GetAsync(_cacheKey);
 
-            foreach (var screening in screeningsFromDatabase)
+            if (cachedScreenings != null)
+            {
+                serializedScreenings = Encoding.UTF8.GetString(cachedScreenings);
+                screenings = JsonConvert.DeserializeObject<List<Screening>>(serializedScreenings);
+                responseDescription = "Screenings extracted from cache.";
+            }
+            else
+            {
+                screenings = await Repository.GetAsync();
+                
+                serializedScreenings = JsonConvert.SerializeObject(screenings, new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                });
+                    
+                cachedScreenings = Encoding.UTF8.GetBytes(serializedScreenings);
+
+                await _cache.SetAsync(_cacheKey, cachedScreenings, new DistributedCacheEntryOptions()
+                    .SetAbsoluteExpiration(DateTime.Now.AddMinutes(_cacheExpirationTime)));
+
+                responseDescription = $"Screenings extracted from database. Cached for {_cacheExpirationTime} minutes.";
+            }
+            
+            if (screenings.Count == 0)
+                return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>("No screenings found.");
+
+            foreach (var screening in screenings)
             {
                 screening.Movie = await _unitOfWork.MovieRepository.GetByIdAsync(screening.MovieId);
                 screening.Room = await _unitOfWork.RoomRepository.GetByIdAsync(screening.RoomId);
             }
 
-            if (screeningsFromDatabase.Count == 0)
-                return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>($"No actual screenings with inserted duration found.");
-
-            screeningsFromDatabase = screeningsFromDatabase
+            screenings = screenings
                 .Where(s=>s.Movie.Duration.CompareTo(TimeOnly.FromDateTime(DateTime.ParseExact(minDuration, "HH:mm:ss",CultureInfo.InvariantCulture))) !=-1)
                 .Where(s => s.Movie.Duration.CompareTo(TimeOnly.FromDateTime(DateTime.ParseExact(maxDuration, "HH:mm:ss", CultureInfo.InvariantCulture))) != 1)
                 .Where(s => s.StartDateTime > DateTime.Now)
                 .OrderBy(s => s.StartDateTime)
                 .ToList();
+            
+            if (screenings.Count == 0)
+                return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>($"No actual screenings with inserted duration found.");
 
-            var screeningsDto = _mapper.Map<List<GetScreeningDto>>(screeningsFromDatabase);
+            var screeningsDto = _mapper.Map<List<GetScreeningDto>>(screenings);
 
-            return _responseCreator.CreateBaseOk(screeningsDto, screeningsDto.Count);
+            return _responseCreator.CreateBaseOk(screeningsDto, screeningsDto.Count, responseDescription);
         }
         catch (Exception e)
         {
