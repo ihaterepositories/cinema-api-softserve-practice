@@ -109,12 +109,17 @@ namespace Cinema.API.Controllers
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
+<<<<<<< updating-controllers-and-adding-pagination
         
         [HttpGet]
         [Route("[action]", Name = "GetNewMovies")]
         [ProducesResponseType(typeof(BaseResponse<List<GetMovieDto>>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(BaseResponse<List<GetMovieDto>>), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(BaseResponse<List<GetMovieDto>>), (int)HttpStatusCode.InternalServerError)]
+=======
+
+        [HttpGet("/newMovies")]
+>>>>>>> dev
         public async Task<IActionResult> GetNewMovies()
         {
             var response = await Service.GetNewMoviesAsync();
@@ -128,11 +133,16 @@ namespace Cinema.API.Controllers
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
+<<<<<<< updating-controllers-and-adding-pagination
         
         [HttpPost("PostMovie")]
         [ProducesResponseType(typeof(BaseResponse<AddMovieDto>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(BaseResponse<AddMovieDto>), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(BaseResponse<AddMovieDto>), (int)HttpStatusCode.InternalServerError)]
+=======
+
+        [HttpPost]
+>>>>>>> dev
         public async Task<IActionResult> PostMovie(AddMovieDto movie)
         {
             var response = await Service.InsertAsync(movie);
