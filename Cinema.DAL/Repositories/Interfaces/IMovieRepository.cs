@@ -8,4 +8,7 @@ public interface IMovieRepository : IGenericRepository<Movie>
 {
     new Task<List<Movie>> GetAsync();
     new Task<Movie> GetByIdAsync(Guid id);
+    
+    Task<List<Movie>> GetTakeSkipAsync(int take, int skip);
+    Task<List<Movie>> GetTakeSkipSortByAsync(int take, int skip, string sortBy);
 }

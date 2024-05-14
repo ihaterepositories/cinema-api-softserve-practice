@@ -9,6 +9,7 @@ using Cinema.DAL.Repositories.Interfaces;
 using Cinema.Data.DTOs.GenreDTOs;
 using Cinema.Data.Models;
 using Cinema.Data.Responses.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace Cinema.BLL.Services;
 
@@ -32,7 +33,7 @@ public class GenreService : IGenreService
         try
         {
             var actorsFromDatabase = await Repository.GetAsync();
-
+            
             if (actorsFromDatabase.Count == 0)
                 return _responseCreator.CreateBaseNotFound<List<GetGenreDto>>("No genres found.");
 

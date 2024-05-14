@@ -1,5 +1,7 @@
+using System.Net;
 using Cinema.BLL.Services.Interfaces;
 using Cinema.Data.DTOs.ActorDTOs;
+using Cinema.Data.Responses;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cinema.API.Controllers
@@ -16,6 +18,9 @@ namespace Cinema.API.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(typeof(BaseResponse<List<GetActorDto>>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse<List<GetActorDto>>), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(BaseResponse<List<GetActorDto>>), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> GetActors()
         {
             var response = await Service.GetAsync();
@@ -30,7 +35,12 @@ namespace Cinema.API.Controllers
             };
         }
         
-        [HttpGet("{id}")]
+        [HttpGet]
+        [Route("[action]/{id}", Name = "GetActorById")]
+        [ProducesResponseType(typeof(BaseResponse<GetActorDto>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse<GetActorDto>), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse<GetActorDto>), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(BaseResponse<GetActorDto>), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> GetActorById(Guid id)
         {
             var response = await Service.GetByIdAsync(id);
@@ -46,6 +56,9 @@ namespace Cinema.API.Controllers
         }
         
         [HttpPost]
+        [ProducesResponseType(typeof(BaseResponse<AddActorDto>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse<AddActorDto>), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse<AddActorDto>), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> PostActor(AddActorDto actor)
         {
             var response = await Service.InsertAsync(actor);
@@ -61,6 +74,9 @@ namespace Cinema.API.Controllers
         }
         
         [HttpPut]
+        [ProducesResponseType(typeof(BaseResponse<UpdateActorDto>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse<UpdateActorDto>), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse<UpdateActorDto>), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> UpdateActor(UpdateActorDto actor)
         {
             var response = await Service.UpdateAsync(actor);
@@ -75,7 +91,11 @@ namespace Cinema.API.Controllers
             };
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete]
+        [Route("[action]/{id}", Name = "DeleteActorById")]
+        [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> DeleteActor(Guid id)
         {
             var response = await Service.DeleteAsync(id);

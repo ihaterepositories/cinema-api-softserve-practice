@@ -10,6 +10,9 @@ public interface IScreeningService
 {
     Task<IBaseResponse<List<GetScreeningDto>>> GetActualAsync();
     Task<IBaseResponse<List<GetScreeningDto>>> GetActualByMovieNameAsync(string movieName);
+    Task<IBaseResponse<List<GetScreeningDto>>> GetActualByDurationAsync(string minDuration, string maxDuration);
+    Task<IBaseResponse<List<GetScreeningDto>>> GetActualByDateAsync(DateOnly date);
+    Task<IBaseResponse<List<GetScreeningDto>>> GetScreeningsByRoomId(Guid id);
     Task<IBaseResponse<List<GetScreeningDto>>> GetActualByDurationAsync(string minDuration,string maxDuration);
     Task<IBaseResponse<List<GetScreeningDto>>> GetActualByDateAsync(DateOnly date);
     Task<IBaseResponse<List<GetScreeningDto>>> GetAsync();

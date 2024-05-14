@@ -92,12 +92,20 @@ public class ScreeningService : IScreeningService
         }
     }
 
+<<<<<<< updating-controllers-and-adding-pagination
+    public async Task<IBaseResponse<List<GetScreeningDto>>> GetScreeningsByRoomId(Guid id)
+=======
     public async Task<IBaseResponse<List<GetScreeningDto>>> GetActualByDateAsync(DateOnly date)
+>>>>>>> dev
     {
         try
         {
             var screeningsFromDatabase = await Repository.GetAsync();
+<<<<<<< updating-controllers-and-adding-pagination
+            
+=======
 
+>>>>>>> dev
             foreach (var screening in screeningsFromDatabase)
             {
                 screening.Movie = await _unitOfWork.MovieRepository.GetByIdAsync(screening.MovieId);
@@ -105,6 +113,12 @@ public class ScreeningService : IScreeningService
             }
 
             if (screeningsFromDatabase.Count == 0)
+<<<<<<< updating-controllers-and-adding-pagination
+                return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>($"No screenings found for room with id {id}.");
+            
+            screeningsFromDatabase = screeningsFromDatabase
+                .FindAll(s => s.RoomId == id)
+=======
                 return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>($"No actual screenings at {date} found.");
 
             screeningsFromDatabase = screeningsFromDatabase
@@ -142,6 +156,7 @@ public class ScreeningService : IScreeningService
                 .Where(s=>s.Movie.Duration.CompareTo(TimeOnly.FromDateTime(DateTime.ParseExact(minDuration, "HH:mm:ss",CultureInfo.InvariantCulture))) !=-1)
                 .Where(s => s.Movie.Duration.CompareTo(TimeOnly.FromDateTime(DateTime.ParseExact(maxDuration, "HH:mm:ss", CultureInfo.InvariantCulture))) != 1)
                 .Where(s => s.StartDateTime > DateTime.Now)
+>>>>>>> dev
                 .OrderBy(s => s.StartDateTime)
                 .ToList();
 
@@ -211,6 +226,69 @@ public class ScreeningService : IScreeningService
         catch (Exception e)
         {
             return _responseCreator.CreateBaseServerError<GetScreeningDto>(e.Message);
+        }
+    }
+    
+    public async Task<IBaseResponse<List<GetScreeningDto>>> GetActualByDateAsync(DateOnly date)
+    {
+        try
+        {
+            var screeningsFromDatabase = await Repository.GetAsync();
+
+            foreach (var screening in screeningsFromDatabase)
+            {
+                screening.Movie = await _unitOfWork.MovieRepository.GetByIdAsync(screening.MovieId);
+                screening.Room = await _unitOfWork.RoomRepository.GetByIdAsync(screening.RoomId);
+            }
+
+            if (screeningsFromDatabase.Count == 0)
+                return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>($"No actual screenings at {date} found.");
+
+            screeningsFromDatabase = screeningsFromDatabase
+                .Where(s => date.CompareTo(DateOnly.FromDateTime(s.StartDateTime))==0)
+                .Where(s => s.StartDateTime > DateTime.Now)
+                .OrderBy(s => s.StartDateTime)
+                .ToList();
+
+            var screeningsDto = _mapper.Map<List<GetScreeningDto>>(screeningsFromDatabase);
+
+            return _responseCreator.CreateBaseOk(screeningsDto, screeningsDto.Count);
+        }
+        catch (Exception e)
+        {
+            return _responseCreator.CreateBaseServerError<List<GetScreeningDto>>(e.Message);
+        }
+    }
+    
+    public async Task<IBaseResponse<List<GetScreeningDto>>> GetActualByDurationAsync(string minDuration, string maxDuration)
+    {
+        try
+        {
+            var screeningsFromDatabase = await Repository.GetAsync();
+
+            foreach (var screening in screeningsFromDatabase)
+            {
+                screening.Movie = await _unitOfWork.MovieRepository.GetByIdAsync(screening.MovieId);
+                screening.Room = await _unitOfWork.RoomRepository.GetByIdAsync(screening.RoomId);
+            }
+
+            if (screeningsFromDatabase.Count == 0)
+                return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>($"No actual screenings with inserted duration found.");
+
+            screeningsFromDatabase = screeningsFromDatabase
+                .Where(s=>s.Movie.Duration.CompareTo(TimeOnly.FromDateTime(DateTime.ParseExact(minDuration, "HH:mm:ss",CultureInfo.InvariantCulture))) !=-1)
+                .Where(s => s.Movie.Duration.CompareTo(TimeOnly.FromDateTime(DateTime.ParseExact(maxDuration, "HH:mm:ss", CultureInfo.InvariantCulture))) != 1)
+                .Where(s => s.StartDateTime > DateTime.Now)
+                .OrderBy(s => s.StartDateTime)
+                .ToList();
+
+            var screeningsDto = _mapper.Map<List<GetScreeningDto>>(screeningsFromDatabase);
+
+            return _responseCreator.CreateBaseOk(screeningsDto, screeningsDto.Count);
+        }
+        catch (Exception e)
+        {
+            return _responseCreator.CreateBaseServerError<List<GetScreeningDto>>(e.Message);
         }
     }
 
