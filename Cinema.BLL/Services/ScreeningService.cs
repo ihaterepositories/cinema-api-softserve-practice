@@ -91,6 +91,36 @@ public class ScreeningService : IScreeningService
         }
     }
 
+    public async Task<IBaseResponse<List<GetScreeningDto>>> GetScreeningsByRoomId(Guid id)
+    {
+        try
+        {
+            var screeningsFromDatabase = await Repository.GetAsync();
+            
+            foreach (var screening in screeningsFromDatabase)
+            {
+                screening.Movie = await _unitOfWork.MovieRepository.GetByIdAsync(screening.MovieId);
+                screening.Room = await _unitOfWork.RoomRepository.GetByIdAsync(screening.RoomId);
+            }
+
+            if (screeningsFromDatabase.Count == 0)
+                return _responseCreator.CreateBaseNotFound<List<GetScreeningDto>>($"No screenings found for room with id {id}.");
+            
+            screeningsFromDatabase = screeningsFromDatabase
+                .FindAll(s => s.RoomId == id)
+                .OrderBy(s => s.StartDateTime)
+                .ToList();
+
+            var screeningsDto = _mapper.Map<List<GetScreeningDto>>(screeningsFromDatabase);
+
+            return _responseCreator.CreateBaseOk(screeningsDto, screeningsDto.Count);
+        }
+        catch (Exception e)
+        {
+            return _responseCreator.CreateBaseServerError<List<GetScreeningDto>>(e.Message);
+        }
+    }
+
     public async Task<IBaseResponse<List<GetScreeningDto>>> GetAsync()
     {
         try

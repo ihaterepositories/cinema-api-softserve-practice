@@ -10,6 +10,7 @@ public interface IScreeningService
 {
     Task<IBaseResponse<List<GetScreeningDto>>> GetActualAsync();
     Task<IBaseResponse<List<GetScreeningDto>>> GetActualByMovieNameAsync(string movieName);
+    Task<IBaseResponse<List<GetScreeningDto>>> GetScreeningsByRoomId(Guid id);
     Task<IBaseResponse<List<GetScreeningDto>>> GetAsync();
     Task<IBaseResponse<GetScreeningDto>> GetByIdAsync(Guid id);
     Task<IBaseResponse<string>> InsertAsync(AddScreeningDto entity);

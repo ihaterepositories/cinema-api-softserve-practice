@@ -46,6 +46,25 @@ namespace Cinema.BLL.Services
                 return _responseCreator.CreateBaseServerError<List<GetMovieDto>>(e.Message);
             }
         }
+        
+        public async Task<IBaseResponse<List<GetMovieDto>>> GetTakeSkipSortByAsync(int take, int skip, string sortBy)
+        {
+            try
+            {
+                var moviesFromDatabase = await Repository.GetTakeSkipSortByAsync(take, skip, sortBy);
+
+                if (moviesFromDatabase.Count == 0)
+                    return _responseCreator.CreateBaseNotFound<List<GetMovieDto>>("No movies found.");
+
+                var moviesDto = _mapper.Map<List<GetMovieDto>>(moviesFromDatabase);
+
+                return _responseCreator.CreateBaseOk(moviesDto, moviesDto.Count);
+            }
+            catch (Exception e)
+            {
+                return _responseCreator.CreateBaseServerError<List<GetMovieDto>>(e.Message);
+            }
+        }
 
         public async Task<IBaseResponse<List<GetMovieDto>>> GetAsync()
         {

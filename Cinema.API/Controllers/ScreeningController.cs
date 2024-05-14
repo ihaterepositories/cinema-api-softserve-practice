@@ -36,7 +36,7 @@ namespace Cinema.API.Controllers
         }
         
         [HttpGet]
-        [Route("[action]actual/movieName/{movieName}", Name = "GetActualScreeningsByMovieName")]
+        [Route("actual/movieName/{movieName}", Name = "GetActualScreeningsByMovieName")]
         [ProducesResponseType(typeof(BaseResponse<List<GetScreeningDto>>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(BaseResponse<List<GetScreeningDto>>), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(BaseResponse<List<GetScreeningDto>>), (int)HttpStatusCode.InternalServerError)]
