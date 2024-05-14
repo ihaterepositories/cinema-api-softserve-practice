@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Cinema.BLL.Helpers;
@@ -55,6 +56,28 @@ namespace Cinema.BLL.Services
 
                 if (moviesFromDatabase.Count == 0)
                     return _responseCreator.CreateBaseNotFound<List<GetMovieDto>>("No movies found.");
+
+                var moviesDto = _mapper.Map<List<GetMovieDto>>(moviesFromDatabase);
+
+                return _responseCreator.CreateBaseOk(moviesDto, moviesDto.Count);
+            }
+            catch (Exception e)
+            {
+                return _responseCreator.CreateBaseServerError<List<GetMovieDto>>(e.Message);
+            }
+        }
+        
+        public async Task<IBaseResponse<List<GetMovieDto>>> GetNewMoviesAsync()
+        {
+            try
+            {
+                var moviesFromDatabase = await Repository.GetAsync();
+
+                if (moviesFromDatabase.Count == 0)
+                    return _responseCreator.CreateBaseNotFound<List<GetMovieDto>>("No movies found.");
+
+                moviesFromDatabase = moviesFromDatabase
+                    .Where(m => m.ReleaseDate.CompareTo(DateOnly.FromDateTime(DateTime.Now))!=-1).ToList();
 
                 var moviesDto = _mapper.Map<List<GetMovieDto>>(moviesFromDatabase);
 

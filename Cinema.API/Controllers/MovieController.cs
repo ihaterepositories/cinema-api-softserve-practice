@@ -110,6 +110,25 @@ namespace Cinema.API.Controllers
             };
         }
         
+        [HttpGet]
+        [Route("[action]", Name = "GetNewMovies")]
+        [ProducesResponseType(typeof(BaseResponse<List<GetMovieDto>>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse<List<GetMovieDto>>), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(BaseResponse<List<GetMovieDto>>), (int)HttpStatusCode.InternalServerError)]
+        public async Task<IActionResult> GetNewMovies()
+        {
+            var response = await Service.GetNewMoviesAsync();
+
+            return response.StatusCode switch
+            {
+                Data.Responses.Enums.StatusCode.Ok => Ok(response),
+                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
+                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
+                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
+        
         [HttpPost("PostMovie")]
         [ProducesResponseType(typeof(BaseResponse<AddMovieDto>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(BaseResponse<AddMovieDto>), (int)HttpStatusCode.BadRequest)]
