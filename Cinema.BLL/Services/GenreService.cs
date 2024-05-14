@@ -58,6 +58,7 @@ public class GenreService : IGenreService
 
             if (genreDto == null)
                 return _responseCreator.CreateBaseNotFound<GetGenreDto>($"Actor with id {id} not found.");
+            
             return _responseCreator.CreateBaseOk(genreDto, 1);
         }
         catch (Exception e)

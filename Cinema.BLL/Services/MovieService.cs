@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using AutoMapper;
 using Cinema.BLL.Helpers;
@@ -9,8 +12,10 @@ using Cinema.DAL.Infrastructure.Interfaces;
 using Cinema.DAL.Repositories.Interfaces;
 using Cinema.Data.DTOs.MovieDTOs;
 using Cinema.Data.Models;
-using Cinema.Data.Responses;
 using Cinema.Data.Responses.Interfaces;
+using Microsoft.Extensions.Caching.Distributed;
+using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Cinema.BLL.Services
 {
@@ -19,14 +24,19 @@ namespace Cinema.BLL.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ResponseCreator _responseCreator;
+        
+        private readonly IDistributedCache _cache;
+        private readonly int _cacheExpirationTime = 5;
+        private readonly string _cacheKey = "movies";
 
         private IMovieRepository Repository => _unitOfWork.MovieRepository;
 
-        public MovieService(IUnitOfWork unitOfWork, IMapper mapper)
+        public MovieService(IUnitOfWork unitOfWork, IMapper mapper, IDistributedCache cache)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _responseCreator = new ResponseCreator();
+            _cache = cache;
         }
         
         public async Task<IBaseResponse<List<GetMovieDto>>> GetTakeSkip(int take, int skip)
@@ -67,21 +77,52 @@ namespace Cinema.BLL.Services
             }
         }
         
+        // cache support enabled
         public async Task<IBaseResponse<List<GetMovieDto>>> GetNewMoviesAsync()
         {
             try
             {
-                var moviesFromDatabase = await Repository.GetAsync();
+                string responseDescription;
+                string serializedMovies;
+                List<Movie> movies;
 
-                if (moviesFromDatabase.Count == 0)
+                var cachedMovies = await _cache.GetAsync(_cacheKey);
+
+                if (cachedMovies != null)
+                {
+                    serializedMovies = Encoding.UTF8.GetString(cachedMovies);
+                    movies = JsonConvert.DeserializeObject<List<Movie>>(serializedMovies);
+                    responseDescription = "Movies extracted from cache.";
+                }
+                else
+                {
+                    movies = await Repository.GetAsync();
+                    
+                    serializedMovies = JsonConvert.SerializeObject(movies, new JsonSerializerSettings
+                    {
+                        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                    });
+                    
+                    cachedMovies = Encoding.UTF8.GetBytes(serializedMovies);
+
+                    await _cache.SetAsync(_cacheKey, cachedMovies, new DistributedCacheEntryOptions()
+                        .SetAbsoluteExpiration(DateTime.Now.AddMinutes(_cacheExpirationTime)));
+
+                    responseDescription = $"Movies extracted from database. Cached for {_cacheExpirationTime} minutes.";
+                }
+
+                if (movies.Count == 0)
                     return _responseCreator.CreateBaseNotFound<List<GetMovieDto>>("No movies found.");
 
-                moviesFromDatabase = moviesFromDatabase
+                movies = movies
                     .Where(m => m.ReleaseDate.CompareTo(DateOnly.FromDateTime(DateTime.Now))!=-1).ToList();
+                
+                if (movies.Count == 0)
+                    return _responseCreator.CreateBaseNotFound<List<GetMovieDto>>("No new movies found.");
+                
+                var moviesDto = _mapper.Map<List<GetMovieDto>>(movies);
 
-                var moviesDto = _mapper.Map<List<GetMovieDto>>(moviesFromDatabase);
-
-                return _responseCreator.CreateBaseOk(moviesDto, moviesDto.Count);
+                return _responseCreator.CreateBaseOk(moviesDto, moviesDto.Count, responseDescription);
             }
             catch (Exception e)
             {
@@ -89,18 +130,46 @@ namespace Cinema.BLL.Services
             }
         }
 
+        // cache support enabled
         public async Task<IBaseResponse<List<GetMovieDto>>> GetAsync()
         {
             try
             {
-                var moviesFromDatabase = await Repository.GetAsync();
+                string responseDescription;
+                string serializedMovies;
+                List<Movie> movies;
 
-                if (moviesFromDatabase.Count == 0)
+                var cachedMovies = await _cache.GetAsync(_cacheKey);
+
+                if (cachedMovies != null)
+                {
+                    serializedMovies = Encoding.UTF8.GetString(cachedMovies);
+                    movies = JsonConvert.DeserializeObject<List<Movie>>(serializedMovies);
+                    responseDescription = "Movies extracted from cache.";
+                }
+                else
+                {
+                    movies = await Repository.GetAsync();
+                    
+                    serializedMovies = JsonConvert.SerializeObject(movies, new JsonSerializerSettings
+                    {
+                        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                    });
+                    
+                    cachedMovies = Encoding.UTF8.GetBytes(serializedMovies);
+
+                    await _cache.SetAsync(_cacheKey, cachedMovies, new DistributedCacheEntryOptions()
+                        .SetAbsoluteExpiration(DateTime.Now.AddMinutes(_cacheExpirationTime)));
+
+                    responseDescription = $"Movies extracted from database. Cached for {_cacheExpirationTime} minutes.";
+                }
+
+                if (movies.Count == 0)
                     return _responseCreator.CreateBaseNotFound<List<GetMovieDto>>("No movies found.");
 
-                var moviesDto = _mapper.Map<List<GetMovieDto>>(moviesFromDatabase);
+                var moviesDto = _mapper.Map<List<GetMovieDto>>(movies);
 
-                return _responseCreator.CreateBaseOk(moviesDto, moviesDto.Count);
+                return _responseCreator.CreateBaseOk(moviesDto, moviesDto.Count, responseDescription);
             }
             catch (Exception e)
             {
@@ -108,6 +177,7 @@ namespace Cinema.BLL.Services
             }
         }
 
+        // cache support enabled
         public async Task<IBaseResponse<GetMovieDto>> GetByIdAsync(Guid id)
         {
             try
@@ -115,12 +185,40 @@ namespace Cinema.BLL.Services
                 if (id == Guid.Empty)
                     return _responseCreator.CreateBaseBadRequest<GetMovieDto>("Id is empty.");
 
-                var movieDto = _mapper.Map<GetMovieDto>(await Repository.GetByIdAsync(id));
+                var movieCacheKey = await _cache.GetStringAsync(id.ToString());
+                Movie movie;
+                string responseDescription;
 
-                if (movieDto == null)
+                if (movieCacheKey != null)
+                {
+                    movie = JsonSerializer.Deserialize<Movie>(movieCacheKey, new JsonSerializerOptions
+                    {
+                        ReferenceHandler = ReferenceHandler.Preserve
+                    });
+                    responseDescription = "Movie extracted from cache.";
+                }
+                else
+                {
+                    movie = await Repository.GetByIdAsync(id);
+                    movieCacheKey = JsonSerializer.Serialize(movie, new JsonSerializerOptions
+                    {
+                        ReferenceHandler = ReferenceHandler.Preserve
+                    });
+
+                    await _cache.SetStringAsync(movie.Id.ToString(), movieCacheKey, new DistributedCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(_cacheExpirationTime)
+                    });
+
+                    responseDescription = $"Movie extracted from database. Cached for {_cacheExpirationTime} minutes.";
+                }
+
+                if (movie == null)
                     return _responseCreator.CreateBaseNotFound<GetMovieDto>($"Movie with id {id} not found.");
 
-                return _responseCreator.CreateBaseOk(movieDto, 1);
+                var movieDto = _mapper.Map<GetMovieDto>(movie);
+
+                return _responseCreator.CreateBaseOk(movieDto, 1, responseDescription);
             }
             catch (Exception e)
             {
