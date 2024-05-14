@@ -1,6 +1,5 @@
 using System.Net;
 using Cinema.BLL.Services.Interfaces;
-using Cinema.Data.DTOs.GenreDTOs;
 using Cinema.Data.DTOs.ScreeningDTOs;
 using Cinema.Data.Responses;
 using Microsoft.AspNetCore.Mvc;

@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Threading.Tasks;
 using Cinema.BLL.Services.Interfaces;
 using Cinema.Data.DTOs.ActorDTOs;
-using Microsoft.AspNetCore.Http;
+using Cinema.Data.Responses;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace Cinema.API.Controllers
 {
@@ -14,122 +10,104 @@ namespace Cinema.API.Controllers
     [Route("api/[controller]")]
     public class ActorController : ControllerBase
     {
-        private readonly IActorService _actorService;
-        private readonly ILogger<ActorController> _logger;
+        private IActorService Service { get; }
 
-        public ActorController(
-            IActorService actorService,
-            ILogger<ActorController> logger
-        )
+        public ActorController(IActorService actorService)
         {
-            _actorService = actorService;
-            _logger = logger;
-        }
-
-        [HttpGet("GetAllActors")]
-        [ProducesResponseType(typeof(List<GetActorDto>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.InternalServerError)]
-        public async Task<IActionResult> GetActors()
-        {
-            try
-            {
-                var result = await _actorService.GetAsync();
-                if (result == null)
-                {
-                    _logger.LogWarning("No actors found");
-                    return NotFound();
-                }
-
-                _logger.LogInformation("Actors retrieved successfully");
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while retrieving actors");
-                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving actors");
-            }
+            Service = actorService;
         }
 
         [HttpGet]
+        [ProducesResponseType(typeof(BaseResponse<List<GetActorDto>>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse<List<GetActorDto>>), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(BaseResponse<List<GetActorDto>>), (int)HttpStatusCode.InternalServerError)]
+        public async Task<IActionResult> GetActors()
+        {
+            var response = await Service.GetAsync();
+
+            return response.StatusCode switch
+            {
+                Data.Responses.Enums.StatusCode.Ok => Ok(response),
+                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
+                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
+                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
+        
+        [HttpGet]
         [Route("[action]/{id}", Name = "GetActorById")]
-        [ProducesResponseType(typeof(GetActorDto), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.InternalServerError)]
+        [ProducesResponseType(typeof(BaseResponse<GetActorDto>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse<GetActorDto>), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse<GetActorDto>), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(BaseResponse<GetActorDto>), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> GetActorById(Guid id)
         {
-            try
-            {
-                var result = await _actorService.GetByIdAsync(id);
-                if (result == null)
-                {
-                    _logger.LogWarning($"Actor with id {id} not found");
-                    return NotFound();
-                }
+            var response = await Service.GetByIdAsync(id);
 
-                _logger.LogInformation($"Actor with id {id} retrieved successfully");
-                return Ok(result);
-            }
-            catch (Exception ex)
+            return response.StatusCode switch
             {
-                _logger.LogError(ex, $"An error occurred while retrieving actor with id {id}");
-                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred while retrieving actor with id {id}");
-            }
+                Data.Responses.Enums.StatusCode.Ok => Ok(response),
+                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
+                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
+                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
-
-        [HttpPost("PostActor")]
-        [ProducesResponseType(typeof(AddActorDto), (int)HttpStatusCode.Created)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.InternalServerError)]
+        
+        [HttpPost]
+        [ProducesResponseType(typeof(BaseResponse<AddActorDto>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse<AddActorDto>), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse<AddActorDto>), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> PostActor(AddActorDto actor)
         {
-            try
-            {
-                await _actorService.InsertAsync(actor);
+            var response = await Service.InsertAsync(actor);
 
-                _logger.LogInformation($"Actor {actor.FullName} added successfully");
-                return CreatedAtAction(nameof(GetActorById),  actor);
-            }
-            catch (Exception ex)
+            return response.StatusCode switch
             {
-                _logger.LogError(ex, $"An error occurred while adding actor {actor.FullName}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while adding actor");
-            }
+                Data.Responses.Enums.StatusCode.Ok => Ok(response),
+                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
+                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
+                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
-
-        [HttpPut("UpdateActor")]
-        [ProducesResponseType(typeof(UpdateActorDto), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.InternalServerError)]
+        
+        [HttpPut]
+        [ProducesResponseType(typeof(BaseResponse<UpdateActorDto>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse<UpdateActorDto>), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse<UpdateActorDto>), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> UpdateActor(UpdateActorDto actor)
         {
-            try
+            var response = await Service.UpdateAsync(actor);
+            
+            return response.StatusCode switch
             {
-                await _actorService.UpdateAsync(actor);
-                return Ok(actor);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while updating the actor.");
-                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while updating the actor.");
-            }
+                Data.Responses.Enums.StatusCode.Ok => Ok(response),
+                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
+                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
+                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
 
         [HttpDelete]
-        [Route ("[action]/{id}", Name="DeleteActor")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.InternalServerError)]
+        [Route("[action]/{id}", Name = "DeleteActorById")]
+        [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> DeleteActor(Guid id)
         {
-            try
+            var response = await Service.DeleteAsync(id);
+            
+            return response.StatusCode switch
             {
-                await _actorService.DeleteAsync(id);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while deleting the actor.");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "An error occurred while deleting the actor.");
-            }
+                Data.Responses.Enums.StatusCode.Ok => Ok(response),
+                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
+                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
+                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
     }
 }
