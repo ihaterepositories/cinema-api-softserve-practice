@@ -54,7 +54,27 @@ namespace Cinema.API.Controllers
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
-        
+
+        [HttpGet]
+        [Route("[action]/{id}", Name = "GetSeatsByScreenigId")]
+        [ProducesResponseType(typeof(BaseResponse<List<GetSeatDto>>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse<List<GetSeatDto>>), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse<List<GetSeatDto>>), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(BaseResponse<List<GetSeatDto>>), (int)HttpStatusCode.InternalServerError)]
+        public async Task<IActionResult> GetSeatsByScreeningId(Guid id)
+        {
+            var response = await Service.GetSeatsByScreeningIdAsync(id);
+
+            return response.StatusCode switch
+            {
+                Data.Responses.Enums.StatusCode.Ok => Ok(response),
+                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
+                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
+                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
+
         [HttpPost("PostSeat")]
         [ProducesResponseType(typeof(BaseResponse<AddSeatDto>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(BaseResponse<AddSeatDto>), (int)HttpStatusCode.BadRequest)]
