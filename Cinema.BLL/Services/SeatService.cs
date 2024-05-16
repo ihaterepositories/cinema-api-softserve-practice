@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Cinema.BLL.Helpers;
 using Cinema.BLL.Services.Interfaces;
 using Cinema.DAL.Infrastructure.Interfaces;
 using Cinema.DAL.Repositories.Interfaces;
+using Cinema.Data.DTOs.ReservedSeatDTOs;
+using Cinema.Data.DTOs.RoomsDTOs;
+using Cinema.Data.DTOs.ScreeningDTOs;
 using Cinema.Data.DTOs.SeatDTOs;
 using Cinema.Data.Models;
 using Cinema.Data.Responses.Interfaces;
@@ -66,7 +70,47 @@ public class SeatService : ISeatService
         }
     }
 
-    public async Task<IBaseResponse<string>> InsertAsync(AddSeatDto entity)
+    public async Task<IBaseResponse<List<GetSeatDto>>> GetSeatsByScreeningIdAsync(Guid screeningId)
+    {
+        try
+        {
+            if (screeningId == Guid.Empty)
+                return _responseCreator.CreateBaseBadRequest<List<GetSeatDto>>("Id is empty.");
+
+            var screening = await _unitOfWork.ScreeningRepository.GetByIdAsync(screeningId);
+
+            if (screening == null)
+                return _responseCreator.CreateBaseNotFound<List<GetSeatDto>>($"Screening with id {screeningId} not found.");
+
+            var room = await _unitOfWork.RoomRepository.GetByIdAsync(screening.RoomId);
+
+            var seats = await Repository.GetAsync();
+
+            seats=seats.Where(x=>x.RoomId==room.Id).ToList();
+
+            if (seats.Count == 0)
+                return _responseCreator.CreateBaseNotFound<List<GetSeatDto>>("No seats found.");
+
+            foreach (var seat in seats)
+            {
+                var seatReserved=await _unitOfWork.ReservedSeatRepository.GetBySeatIdAndScreeningIdAsync(seat.Id,screeningId);
+                if (seatReserved != null)
+                {
+                    seat.ReservedSeats.Add(seatReserved);
+                }
+            }
+
+            var seatsDto = _mapper.Map<List<GetSeatDto>>(seats);
+
+            return _responseCreator.CreateBaseOk(seatsDto, seatsDto.Count);
+        }
+        catch (Exception e)
+        {
+            return _responseCreator.CreateBaseServerError<List<GetSeatDto>>(e.Message);
+        }
+    }
+
+        public async Task<IBaseResponse<string>> InsertAsync(AddSeatDto entity)
     {
         try
         {

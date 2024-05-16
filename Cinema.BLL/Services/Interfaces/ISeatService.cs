@@ -10,6 +10,8 @@ public interface ISeatService
 {
     Task<IBaseResponse<List<GetSeatDto>>> GetAsync();
     Task<IBaseResponse<GetSeatDto>> GetByIdAsync(Guid id);
+
+    Task<IBaseResponse<List<GetSeatDto>>> GetSeatsByScreeningIdAsync(Guid id);
     Task<IBaseResponse<string>> InsertAsync(AddSeatDto entity);
     Task<IBaseResponse<string>> UpdateAsync(UpdateSeatDto entity);
     Task<IBaseResponse<string>> DeleteAsync(Guid id);
