@@ -5,6 +5,7 @@ using Cinema.DAL.Infrastructure;
 using Cinema.DAL.Infrastructure.Interfaces;
 using Cinema.DAL.Repositories;
 using Cinema.DAL.Repositories.Interfaces;
+using Cinema.DAL.Seeding;
 using Cinema.Data.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -50,6 +51,13 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(key)
     };
+});
+
+// Authorization
+builder.Services.AddAuthorization(option =>
+{
+    option.AddPolicy("OnlyAdmin", policyBuilder => policyBuilder.RequireClaim("UserRole", "Administrator"));
+    option.AddPolicy("OnlyUser", policyBuilder => policyBuilder.RequireClaim("UserRole", "User"));
 });
 
 // AutoMapper 
@@ -120,7 +128,14 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<UserRole>>();
+    await RolesUsersSeeding.SeedRolesAsync(roleManager);
 
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+    await RolesUsersSeeding.SeedUsersAsync(userManager);
+}
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

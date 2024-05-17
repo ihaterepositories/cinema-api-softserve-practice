@@ -31,6 +31,11 @@ namespace Cinema.API.Controllers
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
 
+            var roleResult = await _userManager.AddToRoleAsync(user, "User");
+
+            if (!roleResult.Succeeded)
+                return BadRequest(roleResult.Errors);
+
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
 

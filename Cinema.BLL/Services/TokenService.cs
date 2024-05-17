@@ -7,16 +7,20 @@ using System.Threading.Tasks;
 using System;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Identity;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace Cinema.BLL.Services
 {
     public class TokenService : ITokenService
     {
         private readonly IConfiguration _configuration;
-
-        public TokenService(IConfiguration configuration)
+        private readonly UserManager<User> _userManager;
+        public TokenService(IConfiguration configuration, UserManager<User> userManager)
         {
             _configuration = configuration;
+            _userManager = userManager;
         }
 
         public async Task<string> GenerateTokenAsync(User user)
@@ -25,12 +29,18 @@ namespace Cinema.BLL.Services
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[]
+            var claims = new List<Claim>
             {
-            new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-        };
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+            };
+
+            var roles = await _userManager.GetRolesAsync(user);
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim("UserRole", role));
+            }
 
             var token = new JwtSecurityToken(
                 issuer: jwtSettings["Issuer"],

@@ -2,12 +2,14 @@ using System.Net;
 using Cinema.BLL.Services.Interfaces;
 using Cinema.Data.DTOs.MovieDTOs;
 using Cinema.Data.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cinema.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Policy = "OnlyAdmin")]
     public class MovieController : ControllerBase
     {
         private IMovieService Service { get; }
