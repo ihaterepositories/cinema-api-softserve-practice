@@ -89,10 +89,17 @@ namespace Cinema.BLL.Services
                     }
                     else
                     {
-                        var reservedSeat = _mapper.Map<ReservedSeat>(addReservedSeatDto);
-                        reservedSeat.IsReserved = true;
-                        await ReservedSeatRepository.UpdateAsync(reservedSeat);
-                        reservation.ReservedSeats.Add(reservedSeat);
+                        if (existingReservedSeat.IsReserved)
+                        {
+                            return _responseCreator.CreateBaseBadRequest<string>(
+                                $"Seat with number:{existingReservedSeat.Seat.Number} " +
+                                $"row:{existingReservedSeat.Seat.Row} is already reserved.");
+                        }
+                            var reservedSeat = _mapper.Map<ReservedSeat>(addReservedSeatDto);
+                            reservedSeat.IsReserved = true;
+                            await ReservedSeatRepository.UpdateAsync(reservedSeat);
+                            reservation.ReservedSeats.Add(reservedSeat);
+                        
                     }
                 }
                 
