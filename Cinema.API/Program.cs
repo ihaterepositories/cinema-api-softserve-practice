@@ -71,6 +71,7 @@ builder.Services.AddScoped<IScreeningService, ScreeningService>();
 builder.Services.AddScoped<ISeatService, SeatService>();
 builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
+builder.Services.AddScoped<IStatsService, StatsService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
 // repositories
