@@ -67,4 +67,15 @@ public class MovieRepository : GenericRepository<Movie>, IMovieRepository
         Movie? result = await query.FirstOrDefaultAsync(m => m.Id == id);
         return result;
     }
+    
+    public async Task<List<Movie>> GetUserWatchedMoviesAsync(Guid userId)
+    {
+        return await _context.Reservations
+            .Where(r => r.UserId == userId)
+            .SelectMany(r => r.ReservedSeats.Select(rs => rs.Screening.Movie))
+            .Distinct()
+            .Include(m => m.MovieGenres)
+            .Include(m => m.MovieActors)
+            .ToListAsync();
+    }
 }

@@ -5,11 +5,9 @@ namespace Cinema.Data.DTOs.ReservationDTOs
 {
     public class AddReservationDto
     {
-        public bool Reserved { get; set; }
         public Guid UserId { get; set; }
         public bool IsPaid { get; set; }
-        public bool IsActive { get; set; }
 
-        public ICollection<AddReservedSeatDto> ReservedSeats { get; set; } = null!;
+        public List<AddReservedSeatDto> ReservedSeats { get; set; } = null!;
     }
 }

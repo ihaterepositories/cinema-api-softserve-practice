@@ -11,4 +11,5 @@ public interface IMovieRepository : IGenericRepository<Movie>
     
     Task<List<Movie>> GetTakeSkipAsync(int take, int skip);
     Task<List<Movie>> GetTakeSkipSortByAsync(int take, int skip, string sortBy);
+    Task<List<Movie>> GetUserWatchedMoviesAsync(Guid userId);
 }

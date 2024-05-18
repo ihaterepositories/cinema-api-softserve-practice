@@ -56,9 +56,9 @@ namespace Cinema.API.Controllers
         }
         
         [HttpPost("PostReservation")]
-        [ProducesResponseType(typeof(BaseResponse<AddReservationDto>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(BaseResponse<AddReservationDto>), (int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType(typeof(BaseResponse<AddReservationDto>), (int)HttpStatusCode.InternalServerError)]
+        [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> PostReservation(AddReservationDto reservation)
         {
             var response = await Service.InsertAsync(reservation);
@@ -73,10 +73,28 @@ namespace Cinema.API.Controllers
             };
         }
         
+        [HttpPost("PostReservationWithReservedSeats")]
+        [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.InternalServerError)]
+        public async Task<IActionResult> AddReservationWithReservedSeats(AddReservationDto reservation)
+        {
+            var response = await Service.AddReservationWithReservedSeats(reservation);
+            
+            return response.StatusCode switch
+            {
+                Data.Responses.Enums.StatusCode.Ok => Ok(response),
+                Data.Responses.Enums.StatusCode.NotFound => NotFound(response),
+                Data.Responses.Enums.StatusCode.BadRequest => BadRequest(response),
+                Data.Responses.Enums.StatusCode.InternalServerError => StatusCode(500, response),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
+        
         [HttpPut("UpdateReservation")]
-        [ProducesResponseType(typeof(BaseResponse<UpdateReservationDto>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(BaseResponse<UpdateReservationDto>), (int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType(typeof(BaseResponse<UpdateReservationDto>), (int)HttpStatusCode.InternalServerError)]
+        [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> UpdateReservation(UpdateReservationDto reservation)
         {
             var response = await Service.UpdateAsync(reservation);

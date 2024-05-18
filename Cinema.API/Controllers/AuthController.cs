@@ -3,6 +3,7 @@ using Cinema.Data.DTOs.AuthDTOs;
 using Cinema.Data.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Cinema.API.Controllers
 {
@@ -57,6 +58,13 @@ namespace Cinema.API.Controllers
 
             var token = await _tokenService.GenerateTokenAsync(user);
             return Ok(new { Token = token });
+        }
+        
+        [HttpGet("GetAllUsers")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _userManager.Users.ToListAsync();
+            return Ok(users);
         }
     }
 }

@@ -11,5 +11,8 @@ public class ReservedSeatRepository : GenericRepository<ReservedSeat>, IReserved
     {
     }
 
-    public virtual async Task<ReservedSeat> GetBySeatIdAndScreeningIdAsync(Guid seatId,Guid screeningId) => (await Table.Where(x=>x.SeatId==seatId&&x.ScreeningId==screeningId).FirstOrDefaultAsync())!;
+    public virtual async Task<ReservedSeat?> GetBySeatIdAndScreeningIdAsync(Guid seatId, Guid screeningId)
+    {
+        return await Table.Where(x => x.SeatId == seatId && x.ScreeningId == screeningId).FirstOrDefaultAsync();
+    }
 }

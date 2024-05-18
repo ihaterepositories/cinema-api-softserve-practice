@@ -33,6 +33,7 @@ namespace Cinema.BLL.Helpers
 
             CreateMap<ReservedSeat, AddReservedSeatDto>().ReverseMap();
             CreateMap<ReservedSeat, GetReservedSeatDto>().ReverseMap();
+            CreateMap<ReservedSeat, UpdateReservedSeatDto>().ReverseMap();
 
             CreateMap<Screening, AddScreeningDto>().ReverseMap();
             CreateMap<Screening, GetScreeningDto>()
@@ -80,11 +81,11 @@ namespace Cinema.BLL.Helpers
                .ForMember(dest => dest.ReservedSeats, opt => opt.MapFrom(src => src.ReservedSeats))
                .ReverseMap();
 
-            // CreateMap<Reservation, AddReservationDto>()
-            //     .ForMember(dest => dest.ReservedSeats, opt => opt.MapFrom(src => src.ReservedSeats))
-            //     .ForMember(dest => dest.ReservedSeats, opt => opt.MapFrom(src => src.ReservedSeats.Where(c => c.ReservationId == src.Id)))
-            //     .ReverseMap();
-            //
+            CreateMap<Reservation, AddReservationDto>()
+                .ForMember(dest => dest.ReservedSeats, opt => opt.MapFrom(src => src.ReservedSeats.Where(c => c.ReservationId == src.Id)))
+                .ReverseMap();
+
+            
         }
     }
 }
