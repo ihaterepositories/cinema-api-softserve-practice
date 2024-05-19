@@ -1,0 +1,58 @@
+name: dockercompose1436442631380410291
+services:
+  cache:
+    container_name: redis-cache
+    environment:
+      REDIS_DATABASES: "16"
+      REDIS_PASSWORD: mypass
+      REDIS_PORT: "6379"
+    hostname: redis-cache
+    image: redis:6.2-alpine
+    networks:
+      cinema: null
+    ports:
+      - mode: ingress
+        target: 6379
+        published: "6379"
+        protocol: tcp
+    restart: always
+  cinema.api:
+    build:
+      context: D:\Навчання\Особливі роботи\Практика\cinema-api-softserve-practice\cinema-api-softserve-practice
+      dockerfile: Cinema.API/Dockerfile
+    container_name: cinema-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ASPNETCORE_HTTPS_PORTS: "8081"
+    hostname: cinema-reservation-api
+    image: cinemaapi
+    networks:
+      cinema: null
+    ports:
+      - mode: ingress
+        target: 80
+        published: "8001"
+        protocol: tcp
+      - mode: ingress
+        target: 8080
+        protocol: tcp
+      - mode: ingress
+        target: 8081
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: C:\Users\amigo\AppData\Roaming/Microsoft/UserSecrets
+        target: /home/app/.microsoft/usersecrets
+        read_only: true
+        bind:
+          create_host_path: true
+      - type: bind
+        source: C:\Users\amigo\AppData\Roaming/ASP.NET/Https
+        target: /home/app/.aspnet/https
+        read_only: true
+        bind:
+          create_host_path: true
+networks:
+  cinema:
+    name: dockercompose1436442631380410291_cinema
