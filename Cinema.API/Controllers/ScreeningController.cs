@@ -2,6 +2,7 @@ using System.Net;
 using Cinema.BLL.Services.Interfaces;
 using Cinema.Data.DTOs.ScreeningDTOs;
 using Cinema.Data.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cinema.API.Controllers
@@ -148,7 +149,8 @@ namespace Cinema.API.Controllers
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
-        
+
+        [Authorize(Policy = "OnlyAdmin")]
         [HttpPost("PostScreening")]
         [ProducesResponseType(typeof(BaseResponse<AddScreeningDto>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(BaseResponse<AddScreeningDto>), (int)HttpStatusCode.BadRequest)]
@@ -166,7 +168,8 @@ namespace Cinema.API.Controllers
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
-        
+
+        [Authorize(Policy = "OnlyAdmin")]
         [HttpPut("UpdateScreening")]
         [ProducesResponseType(typeof(BaseResponse<UpdateScreeningDto>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(BaseResponse<UpdateScreeningDto>), (int)HttpStatusCode.BadRequest)]
@@ -185,6 +188,7 @@ namespace Cinema.API.Controllers
             };
         }
 
+        [Authorize(Policy = "OnlyAdmin")]
         [HttpDelete]
         [Route("[action]/{id}", Name = "DeleteScreening")]
         [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
