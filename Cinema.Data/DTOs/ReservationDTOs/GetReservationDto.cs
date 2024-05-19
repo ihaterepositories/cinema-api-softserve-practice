@@ -8,7 +8,6 @@ namespace Cinema.Data.DTOs.ReservationDTOs
         public bool Reserved { get; set; }
         public Guid UserId { get; set; }
         public bool IsPaid { get; set; }
-        public bool IsActive { get; set; }
 
         public List<GetReservedSeatDto> ReservedSeats { get; set; } = null!;
     }

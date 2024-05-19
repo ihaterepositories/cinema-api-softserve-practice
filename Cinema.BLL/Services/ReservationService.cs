@@ -19,6 +19,7 @@ namespace Cinema.BLL.Services
         private readonly ResponseCreator _responseCreator;
 
         private IReservationRepository Repository => _unitOfWork.ReservationRepository;
+        private IReservedSeatRepository ReservedSeatRepository => _unitOfWork.ReservedSeatRepository;
 
         public ReservationService(IUnitOfWork unitOfWork, IMapper mapper)
         {
@@ -65,6 +66,53 @@ namespace Cinema.BLL.Services
                 return _responseCreator.CreateBaseServerError<GetReservationDto>(e.Message);
             }
         }
+        
+        public async Task<IBaseResponse<string>> AddReservationWithReservedSeats(AddReservationDto addReservationDto)
+        {
+            try
+            {
+                if (addReservationDto == null)
+                    return _responseCreator.CreateBaseBadRequest<string>("Reservation is empty.");
+                
+                var reservation = _mapper.Map<Reservation>(addReservationDto);
+                reservation.ReservedSeats = new List<ReservedSeat>();
+                
+                foreach (var addReservedSeatDto in addReservationDto.ReservedSeats)
+                {
+                    var existingReservedSeat = await ReservedSeatRepository.GetBySeatIdAndScreeningIdAsync(addReservedSeatDto.SeatId, addReservedSeatDto.ScreeningId);
+                    if(existingReservedSeat == null)
+                    {
+                        var reservedSeat = _mapper.Map<ReservedSeat>(addReservedSeatDto);
+                        reservedSeat.IsReserved = true;
+                        await ReservedSeatRepository.InsertAsync(reservedSeat);
+                        reservation.ReservedSeats.Add(reservedSeat);
+                    }
+                    else
+                    {
+                        if (existingReservedSeat.IsReserved)
+                        {
+                            return _responseCreator.CreateBaseBadRequest<string>(
+                                $"Seat with number:{existingReservedSeat.Seat.Number} " +
+                                $"row:{existingReservedSeat.Seat.Row} is already reserved.");
+                        }
+                            var reservedSeat = _mapper.Map<ReservedSeat>(addReservedSeatDto);
+                            reservedSeat.IsReserved = true;
+                            await ReservedSeatRepository.UpdateAsync(reservedSeat);
+                            reservation.ReservedSeats.Add(reservedSeat);
+                        
+                    }
+                }
+                
+                await Repository.InsertAsync(reservation);
+                await _unitOfWork.SaveChangesAsync();
+
+                return _responseCreator.CreateBaseOk($"Reservation added.", 1);
+            }
+            catch (Exception e)
+            {
+                return _responseCreator.CreateBaseServerError<string>(e.Message);
+            }
+        }
 
         public async Task<IBaseResponse<string>> InsertAsync(AddReservationDto entity)
         {
@@ -91,7 +139,20 @@ namespace Cinema.BLL.Services
 
         public async Task<IBaseResponse<string>> DeleteAsync(Guid id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (id == Guid.Empty)
+                    return _responseCreator.CreateBaseBadRequest<string>("Id is empty.");
+
+                await Repository.DeleteAsync(id);
+                await _unitOfWork.SaveChangesAsync();
+
+                return _responseCreator.CreateBaseOk("Reservation deleted.", 1);
+            }
+            catch (Exception e)
+            {
+                return _responseCreator.CreateBaseServerError<string>(e.Message);
+            }
         }
     }
 }

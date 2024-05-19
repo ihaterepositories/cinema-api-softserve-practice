@@ -5,5 +5,5 @@ namespace Cinema.DAL.Repositories.Interfaces;
 
 public interface IReservedSeatRepository : IGenericRepository<ReservedSeat>
 {
-    Task<ReservedSeat> GetBySeatIdAndScreeningIdAsync(Guid seatid,Guid screeningId);
+    Task<ReservedSeat?> GetBySeatIdAndScreeningIdAsync(Guid seatId,Guid screeningId);
 }
