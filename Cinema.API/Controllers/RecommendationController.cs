@@ -2,6 +2,7 @@
 using Cinema.BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Cinema.API.Controllers;
 
@@ -17,10 +18,16 @@ public class RecommendationsController : ControllerBase
         _recommendationService = recommendationService;
     }
 
-    [HttpGet("user/{userId}")]
-    public async Task<IActionResult> GetUserRecommendations(Guid userId, [FromQuery] int k = 5)
+    [HttpGet("user")]
+    public async Task<IActionResult> GetUserRecommendations([FromQuery] int k = 5)
     {
-        var recommendations = await _recommendationService.GetRecommendationsForUserAsync(userId, k);
+        var userIdClaim = User.FindFirst("userId")?.Value;
+        if (userIdClaim == null)
+        {
+            return Forbid();
+        }
+
+        var recommendations = await _recommendationService.GetRecommendationsForUserAsync(Guid.Parse(userIdClaim), k);
         if (recommendations == null || !recommendations.Any())
         {
             return NotFound("No recommendations found for the user.");

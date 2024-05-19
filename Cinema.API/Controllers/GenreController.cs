@@ -2,6 +2,7 @@ using System.Net;
 using Cinema.BLL.Services.Interfaces;
 using Cinema.Data.DTOs.GenreDTOs;
 using Cinema.Data.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cinema.API.Controllers
@@ -56,7 +57,8 @@ namespace Cinema.API.Controllers
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
-        
+
+        [Authorize(Policy = "OnlyAdmin")]
         [HttpPost("PostGenre")]
         [ProducesResponseType(typeof(BaseResponse<AddGenreDto>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(BaseResponse<AddGenreDto>), (int)HttpStatusCode.BadRequest)]
@@ -74,7 +76,8 @@ namespace Cinema.API.Controllers
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
-        
+
+        [Authorize(Policy = "OnlyAdmin")]
         [HttpPut("UpdateGenre")]
         [ProducesResponseType(typeof(BaseResponse<UpdateGenreDto>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(BaseResponse<UpdateGenreDto>), (int)HttpStatusCode.BadRequest)]
@@ -93,6 +96,7 @@ namespace Cinema.API.Controllers
             };
         }
 
+        [Authorize(Policy = "OnlyAdmin")]
         [HttpDelete]
         [Route("[action]/{id}", Name = "DeleteGenreById")]
         [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
