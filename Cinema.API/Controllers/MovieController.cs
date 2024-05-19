@@ -9,6 +9,7 @@ namespace Cinema.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    
     public class MovieController : ControllerBase
     {
         private IMovieService Service { get; }
@@ -129,7 +130,8 @@ namespace Cinema.API.Controllers
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
-        
+
+        [Authorize(Policy = "OnlyAdmin")]
         [HttpPost("PostMovie")]
         [ProducesResponseType(typeof(BaseResponse<AddMovieDto>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(BaseResponse<AddMovieDto>), (int)HttpStatusCode.BadRequest)]
@@ -147,7 +149,8 @@ namespace Cinema.API.Controllers
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
-        
+
+        [Authorize(Policy = "OnlyAdmin")]
         [HttpPut("UpdateMovie")]
         [ProducesResponseType(typeof(BaseResponse<UpdateMovieDto>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(BaseResponse<UpdateMovieDto>), (int)HttpStatusCode.BadRequest)]
@@ -166,6 +169,7 @@ namespace Cinema.API.Controllers
             };
         }
 
+        [Authorize(Policy = "OnlyAdmin")]
         [HttpDelete]
         [Route("[action]/{id}", Name = "DeleteMovie")]
         [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
