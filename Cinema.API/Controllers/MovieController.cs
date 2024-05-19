@@ -9,7 +9,6 @@ namespace Cinema.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Policy = "OnlyAdmin")]
     public class MovieController : ControllerBase
     {
         private IMovieService Service { get; }
