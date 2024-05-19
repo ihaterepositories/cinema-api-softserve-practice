@@ -2,6 +2,7 @@ using System.Net;
 using Cinema.BLL.Services.Interfaces;
 using Cinema.Data.DTOs.SeatDTOs;
 using Cinema.Data.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cinema.API.Controllers
@@ -75,6 +76,7 @@ namespace Cinema.API.Controllers
             };
         }
 
+        [Authorize(Policy = "OnlyAdmin")]
         [HttpPost("PostSeat")]
         [ProducesResponseType(typeof(BaseResponse<AddSeatDto>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(BaseResponse<AddSeatDto>), (int)HttpStatusCode.BadRequest)]
@@ -92,7 +94,8 @@ namespace Cinema.API.Controllers
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
-        
+
+        [Authorize(Policy = "OnlyAdmin")]
         [HttpPut("UpdateSeat")]
         [ProducesResponseType(typeof(BaseResponse<UpdateSeatDto>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(BaseResponse<UpdateSeatDto>), (int)HttpStatusCode.BadRequest)]
@@ -111,6 +114,7 @@ namespace Cinema.API.Controllers
             };
         }
 
+        [Authorize(Policy = "OnlyAdmin")]
         [HttpDelete]
         [Route("[action]/{id}", Name = "DeleteSeatById")]
         [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
