@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PublishProfile xmlns="http://schemas.microsoft.com/2015/05/fabrictools">
+  <!-- ClusterConnectionParameters позволяет указывать параметры PowerShell, используемые при подключении к кластеру Service Fabric.
+       Допустимы все параметры, принимаемые командлетом Connect-ServiceFabricCluster.
+
+       В случае локального кластера указывать параметры обычно не требуется.
+         Например, <ClusterConnectionParameters />
+  -->
+  <ClusterConnectionParameters />
+  <ApplicationParameterFile Path="..\ApplicationParameters\Local.1Node.xml" />
+</PublishProfile>

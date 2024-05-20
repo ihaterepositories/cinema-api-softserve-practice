@@ -7,9 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cinema.Data", "Cinema.Data\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cinema.DAL", "Cinema.DAL\Cinema.DAL.csproj", "{56F98500-407F-49AA-A8B2-26A4DB90AA86}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cinema.BLL", "Cinema.BLL\Cinema.BLL.csproj", "{6F485688-9ECF-4C37-9F45-928B1623775A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cinema.BLL", "Cinema.BLL\Cinema.BLL.csproj", "{6F485688-9ECF-4C37-9F45-928B1623775A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cinema.API", "Cinema.API\Cinema.API.csproj", "{53144F5B-8762-4D79-872D-4994E41E689A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cinema.API", "Cinema.API\Cinema.API.csproj", "{53144F5B-8762-4D79-872D-4994E41E689A}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{BC13FF5E-351F-48B9-9783-7A7F15D8DEC6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{53144F5B-8762-4D79-872D-4994E41E689A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{53144F5B-8762-4D79-872D-4994E41E689A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{53144F5B-8762-4D79-872D-4994E41E689A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC13FF5E-351F-48B9-9783-7A7F15D8DEC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC13FF5E-351F-48B9-9783-7A7F15D8DEC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC13FF5E-351F-48B9-9783-7A7F15D8DEC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC13FF5E-351F-48B9-9783-7A7F15D8DEC6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

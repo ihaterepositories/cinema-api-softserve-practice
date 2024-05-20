@@ -28,10 +28,16 @@ public class CinemaContext : IdentityDbContext<User,UserRole,Guid>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
         modelBuilder.Entity<IdentityUserLogin<Guid>>().HasNoKey();
-        modelBuilder.Entity<IdentityUserRole<Guid>>().HasNoKey();
+        modelBuilder.Entity<IdentityUserRole<Guid>>().HasKey(r => new { r.UserId, r.RoleId });
         modelBuilder.Entity<IdentityUserToken<Guid>>().HasNoKey();
 
+        ConfigureSeeding(modelBuilder);
+    }
+
+    private void ConfigureSeeding(ModelBuilder modelBuilder)
+    {
         CinemaSeeding.SeedingInit();
         modelBuilder.Entity<Actor>().HasData(CinemaSeeding.Actors);
         modelBuilder.Entity<Genre>().HasData(CinemaSeeding.Genres);

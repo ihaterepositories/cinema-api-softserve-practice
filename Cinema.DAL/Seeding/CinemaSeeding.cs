@@ -1,10 +1,5 @@
 ﻿using Bogus;
 using Cinema.Data.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Cinema.DAL.Seeding
 {
@@ -58,13 +53,12 @@ namespace Cinema.DAL.Seeding
 
             Reservations = new Faker<Reservation>()
                 .RuleFor(x => x.Id, f => f.Random.Guid())
-                .RuleFor(x => x.Reserved, f => f.Random.Bool())
                 .RuleFor(x => x.IsPaid, f => f.Random.Bool())
-                .RuleFor(x => x.IsActive, f => f.Random.Bool())
                 .Generate(30);
 
             ReservedSeats = new Faker<ReservedSeat>()
                 .RuleFor(x => x.Id, f => f.Random.Guid())
+                .RuleFor(x => x.IsReserved, f => f.Random.Bool())
                 .Generate(30);
 
             Rooms = new Faker<Room>()
@@ -75,7 +69,9 @@ namespace Cinema.DAL.Seeding
 
             Screenings = new Faker<Screening>()
                 .RuleFor(x => x.Id, f => f.Random.Guid())
-                .RuleFor(x => x.ScreeningStart, f => f.Date.RecentTimeOnly())
+                .RuleFor(x => x.StartDateTime, f => f.Date.Between(
+                    new DateTime(2024, 4, 10), new DateTime(2024, 7, 10)))
+                .RuleFor(x => x.Price, f => f.Random.Double())
                 .Generate(30);
 
             Seats = new Faker<Seat>()

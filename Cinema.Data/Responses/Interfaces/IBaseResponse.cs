@@ -1,6 +1,11 @@
-﻿namespace Cinema.Data.Responses.Interfaces;
+﻿using Cinema.Data.Responses.Enums;
+
+namespace Cinema.Data.Responses.Interfaces;
 
 public interface IBaseResponse<T>
 {
-    T? Data { get; set; }
+    public string Description { get; set; }
+    public StatusCode StatusCode { get; set; }
+    public int ResultsCount { get; set; }
+    public T Data { get; set; }
 }
