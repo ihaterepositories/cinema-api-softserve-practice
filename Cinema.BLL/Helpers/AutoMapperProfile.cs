@@ -85,7 +85,9 @@ namespace Cinema.BLL.Helpers
                 .ForMember(dest => dest.ReservedSeats, opt => opt.MapFrom(src => src.ReservedSeats.Where(c => c.ReservationId == src.Id)))
                 .ReverseMap();
 
-            
+            CreateMap<Reservation, UpdateReservationDto>()
+                .ForMember(dest => dest.ReservedSeats, opt => opt.MapFrom(src => src.ReservedSeats.Where(c => c.ReservationId == src.Id)))
+                .ReverseMap();
         }
     }
 }

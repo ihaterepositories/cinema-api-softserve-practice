@@ -134,7 +134,20 @@ namespace Cinema.BLL.Services
 
         public async Task<IBaseResponse<string>> UpdateAsync(UpdateReservationDto entity)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (entity == null)
+                    return _responseCreator.CreateBaseBadRequest<string>("Genre is empty.");
+
+                await Repository.UpdateAsync(_mapper.Map<Reservation>(entity));
+                await _unitOfWork.SaveChangesAsync();
+
+                return _responseCreator.CreateBaseOk("Reservation updated.", 1);
+            }
+            catch (Exception e)
+            {
+                return _responseCreator.CreateBaseServerError<string>(e.Message);
+            }
         }
 
         public async Task<IBaseResponse<string>> DeleteAsync(Guid id)
